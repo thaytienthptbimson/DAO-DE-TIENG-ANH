@@ -100,10 +100,11 @@
             </div>
 
             <div class="instructions">
-                <b>Lưu ý về số thứ tự tự động:</b>
+                <b>Nguyên tắc hoạt động:</b>
                 <ul>
-                    <li>Trong phần <code>instruction</code> hoặc <code>passage</code>, hãy sử dụng <code>{start}</code> và <code>{end}</code> (hoặc các mốc số như <code>{1}</code>, <code>{2}</code>...).</li>
-                    <li>Khi đảo phần thi, hệ thống sẽ tự động quét và cập nhật lại chính xác khoảng câu hỏi (ví dụ: từ câu 1 đến câu 6 sẽ tự chuyển thành từ câu 7 đến câu 12 nếu phần đó bị đảo xuống dưới).</li>
+                    <li><b>Giữ nguyên văn bản:</b> Nội dung bài đọc và các câu hỏi trong từng phần được bảo toàn tuyệt đối, không bị xáo trộn vị trí nội bộ.</li>
+                    <li><b>Đảo phần & Đảo đáp án:</b> Các phần thi được xáo trộn với nhau, các phương án A, B, C, D trong mỗi câu được đảo ngẫu nhiên.</li>
+                    <li><b>Tự động cập nhật số câu:</b> Số câu trong lời dẫn (`instruction`) và các chỗ trống trong bài đọc (`(1)`, `(2)`...) tự động cập nhật khớp hoàn toàn với số thứ tự mới.</li>
                 </ul>
             </div>
         </div>
@@ -111,10 +112,10 @@
 </div>
 
 <script>
-// Dữ liệu mẫu (JSON) cho Đề Tiếng Anh mặc định
+// Dữ liệu mẫu (JSON) chuẩn
 const defaultJSON = {
   "header": {
-    "school": "SỞ GIÁO DỤC VÀ ĐÀO TẠO",
+    "school": "BỘ GIÁO DỤC VÀ ĐÀO TẠO",
     "examName": "KỲ THI TỐT NGHIỆP THPT NĂM 2026",
     "subject": "Môn thi: TIẾNG ANH",
     "time": "Thời gian làm bài: 50 phút"
@@ -122,20 +123,11 @@ const defaultJSON = {
   "sections": [
     {
       "id": "s1",
-      "instruction": "Read the following leaflet and mark the letter A, B, C or D on your answer sheet to indicate the option that best fits each of the numbered blanks from {start} to {end}.",
-      "passage": "GREEN HANDS CAMPAIGN\nThe School Youth Union is officially launching the campaign. If everyone ({1})______ together, we will make a difference. Expand students' ({2})______ of pollution.",
+      "instruction": "Read the following leaflet and mark the letter A, B, C or D on your answer sheet to indicate the option that best fits each of the numbered blanks from 1 to 6.",
+      "passage": "GREEN HANDS CAMPAIGN\nThe School Youth Union is officially launching the campaign. If everyone (1)______ together, we will make a difference. Expand students' (2)______ of pollution.",
       "questions": [
         { "id": 1, "stem": "", "options": ["work", "worked", "have worked", "works"], "answer": 3 },
         { "id": 2, "stem": "", "options": ["focus", "attention", "emphasis", "knowledge"], "answer": 3 }
-      ]
-    },
-    {
-      "id": "s2",
-      "instruction": "Mark the letter A, B, C or D on your answer sheet to indicate the correct answer to each of the following questions from {start} to {end}.",
-      "passage": "",
-      "questions": [
-        { "id": 3, "stem": "They have been learning English ______ 2010.", "options": ["in", "since", "for", "from"], "answer": 1 },
-        { "id": 4, "stem": "The more you study, ______ you will become.", "options": ["the smartest", "smarter", "the smarter", "smartest"], "answer": 2 }
       ]
     }
   ]
@@ -230,7 +222,7 @@ function parseTextToExamJSON(rawText) {
 
     let currentSection = {
         "id": "s1",
-        "instruction": "Read the following passage and mark the letter A, B, C or D to indicate the correct answer from {start} to {end}.",
+        "instruction": "Read the following passage and mark the letter A, B, C or D to indicate the correct answer from 1 to 5.",
         "passage": "",
         "questions": []
     };
@@ -242,7 +234,6 @@ function parseTextToExamJSON(rawText) {
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
 
-        // Tự động chuẩn hóa các câu lệnh chỉ dẫn có dải số tĩnh thành {start} và {end} để hệ thống tự quản lý
         if (line.toLowerCase().includes("read the") || line.toLowerCase().includes("mark the letter") || line.toLowerCase().includes("from question")) {
             if (currentSection.questions.length > 0 || currentSection.passage) {
                 if (currentPassageLines.length > 0) {
@@ -252,12 +243,12 @@ function parseTextToExamJSON(rawText) {
                 examObj.sections.push(currentSection);
                 currentSection = {
                     "id": "s" + (examObj.sections.length + 1),
-                    "instruction": line.replace(/from\s+\d+\s+to\s+\d+/gi, "from {start} to {end}").replace(/from\s+question\s+\d+\s+to\s+\d+/gi, "from {start} to {end}"),
+                    "instruction": line,
                     "passage": "",
                     "questions": []
                 };
             } else {
-                currentSection.instruction = line.replace(/from\s+\d+\s+to\s+\d+/gi, "from {start} to {end}").replace(/from\s+question\s+\d+\s+to\s+\d+/gi, "from {start} to {end}");
+                currentSection.instruction = line;
             }
             collectingPassage = true;
             continue;
@@ -311,7 +302,7 @@ function parseTextToExamJSON(rawText) {
     return examObj.sections.length > 0 ? examObj : defaultJSON;
 }
 
-// Hàm chính tiến hành đảo đề và tự động thay đổi số thứ tự trong instruction / passage
+// Hàm tiến hành đảo đề và tự động cập nhật số câu trong instruction và passage
 function shuffleExam() {
     document.getElementById('status').style.display = 'block';
     document.getElementById('status').textContent = 'Đang xử lý...';
@@ -332,6 +323,7 @@ function shuffleExam() {
 
             for (let c = 0; c < numCodes; c++) {
                 let currentCode = startCode + c;
+                // Chỉ đảo thứ tự các phần (sections), không đảo câu hỏi bên trong section
                 let shuffledSections = shuffleArray(examData.sections);
                 
                 let examHtml = `
@@ -344,7 +336,7 @@ function shuffleExam() {
                     </div>
                 `;
 
-                // BƯỚC 1: Xây dựng bảng ánh xạ câu hỏi cũ sang câu hỏi mới sau khi xáo trộn phần
+                // BƯỚC 1: Xây dựng bảng ánh xạ câu hỏi cũ sang số thứ tự câu hỏi mới sau khi đảo phần
                 let globalQNum = 1;
                 let mapOldToNew = {}; 
                 
@@ -357,48 +349,44 @@ function shuffleExam() {
                 
                 if (c === 0) totalQuestions = globalQNum - 1;
 
-                // BƯỚC 2: Duyệt qua từng phần để render nội dung kèm tự động đổi số thứ tự câu trong instruction và passage
+                // BƯỚC 2: Render nội dung đề thi, tự động cập nhật số câu trong instruction và passage
                 shuffledSections.forEach(sec => {
-                    // Lấy ra dải số câu hỏi mới của phần này trong mã đề hiện tại
                     let sectionQNums = sec.questions.map(q => mapOldToNew[q.id]);
                     let startQ = Math.min(...sectionQNums);
                     let endQ = Math.max(...sectionQNums);
 
-                    // Tự động thay thế {start}, {end} hoặc các định dạng số cũ trong lời chỉ dẫn
-                    let instructionText = sec.instruction
-                        .replace(/\{start\}/gi, startQ)
-                        .replace(/\{end\}/gi, endQ)
-                        .replace(/\{(\d+)\}/g, (match, p1) => {
-                            let mapped = mapOldToNew[parseInt(p1)];
-                            return mapped !== undefined ? mapped : match;
-                        });
-                    
+                    // Cập nhật khoảng câu hỏi trong phần hướng dẫn (instruction)
+                    let instructionText = sec.instruction || "";
+                    instructionText = instructionText.replace(/\{start\}/gi, startQ).replace(/\{end\}/gi, endQ);
+                    // Tự động nhận diện các dải số dạng "from X to Y" hoặc "from question X to Y" để thay thế tự động
+                    instructionText = instructionText.replace(/(from\s+(?:question\s+)?)\d+(\s+to\s+)\d+/gi, `$1${startQ}$2${endQ}`);
+                    instructionText = instructionText.replace(/(from\s+blanks?\s+(?:from\s+)?)\d+(\s+to\s+)\d+/gi, `$1${startQ}$2${endQ}`);
+
                     examHtml += `<p style="font-weight: bold; margin-top: 16pt;">${parseMarkdown(instructionText)}</p>`;
                     
-                    // Tự động thay thế {start}, {end} hoặc các số câu trong đoạn văn (passage)
-                    if (sec.passage && sec.passage.trim() !== "") {
-                        let passageText = sec.passage
-                            .replace(/\{start\}/gi, startQ)
-                            .replace(/\{end\}/gi, endQ)
-                            .replace(/\{(\d+)\}/g, (match, p1) => {
-                                let mapped = mapOldToNew[parseInt(p1)];
-                                return mapped !== undefined ? mapped : match;
-                            });
+                    // Cập nhật số thứ tự chỗ trống trong đoạn văn/bài đọc (passage) như (1), (2)...
+                    let passageText = sec.passage || "";
+                    if (passageText.trim() !== "") {
+                        passageText = passageText.replace(/\{start\}/gi, startQ).replace(/\{end\}/gi, endQ);
+                        
+                        // Cập nhật các chỗ trống cục bộ (1), (2), (3)... thành số thứ tự toàn cục mới tương ứng
+                        sec.questions.forEach((q, idx) => {
+                            let localNum = idx + 1;
+                            let newNum = sectionQNums[idx];
+                            let regexParen = new RegExp(`\\(${localNum}\\)`, 'g');
+                            passageText = passageText.replace(regexParen, `(${newNum})`);
+                        });
+
                         examHtml += `<p style="margin-bottom: 12pt; text-align: justify;">${parseMarkdown(passageText)}</p>`;
                     }
 
-                    // Render danh sách câu hỏi
+                    // Render danh sách câu hỏi (giữ nguyên thứ tự nội bộ của bài đọc)
                     sec.questions.forEach(q => {
                         let currentQNumber = mapOldToNew[q.id];
-                        let stemText = q.stem.replace(/\{(\d+)\}/g, (match, p1) => {
-                            let mapped = mapOldToNew[parseInt(p1)];
-                            return mapped !== undefined ? mapped : match;
-                        });
-                        
                         let prefix = `<b>Câu ${currentQNumber}:</b> `;
-                        examHtml += `<p style="margin: 6pt 0 4pt 0;">${prefix}${parseMarkdown(stemText)}</p>`;
+                        examHtml += `<p style="margin: 6pt 0 4pt 0;">${prefix}${parseMarkdown(q.stem)}</p>`;
 
-                        // Đảo đáp án A, B, C, D
+                        // Đảo ngẫu nhiên vị trí các đáp án A, B, C, D
                         let optionsArr = q.options.map((optText, idx) => {
                             return { text: optText, isCorrect: (idx === q.answer) };
                         });
@@ -421,7 +409,7 @@ function shuffleExam() {
                 generatedExamsHTML += examHtml;
             }
 
-            // BƯỚC 3: Tạo bảng Ma Trận Đáp Án
+            // BƯỚC 3: Tạo bảng Ma Trận Đáp Án chính xác theo số câu mới
             generatedKeysHTML = `
                 <div style="text-align: center; margin-bottom: 20px;">
                     <p style="margin:0; font-size: 16pt; font-weight: bold;">BẢNG ĐÁP ÁN CÁC MÃ ĐỀ</p>
