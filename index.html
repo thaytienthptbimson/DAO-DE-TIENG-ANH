@@ -1,496 +1,213 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Phần Mềm Đảo Đề Tiếng Anh (Cấu trúc 2026)</title>
-    <!-- Thư viện Mammoth.js dùng để đọc file .docx trực tiếp trên trình duyệt -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phần Mềm Đảo Đề Tiếng Anh THPT 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --brand: #2563eb;
-            --brand-dark: #1d4ed8;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --border: #e2e8f0;
-            --text: #1e293b;
-            --mut: #64748b;
-            --ok: #16a34a;
+        @media print {
+            .no-print { display: none !important; }
+            .page-break { page-break-after: always; }
+            body { background: white; font-size: 12pt; }
         }
-        * { box-sizing: border-box; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: auto; }
-        .header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header h1 { margin: 0 0 8px; font-size: 24px; }
-        .header p { margin: 0; opacity: 0.9; font-size: 15px; }
-        
-        .grid { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
-        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-        
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .card h2 { margin: 0 0 16px; font-size: 18px; color: var(--brand); border-bottom: 2px solid var(--bg); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        
-        textarea { width: 100%; height: 440px; padding: 16px; border: 1px solid var(--border); border-radius: 8px; font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.5; resize: vertical; background: #f8fafc; color: #334155; }
-        textarea:focus { outline: none; border-color: var(--brand); background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-        
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; }
-        
-        .btn { display: flex; align-items: center; justify-content: center; width: 100%; padding: 12px; background: var(--brand); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 12px; }
-        .btn:hover { background: var(--brand-dark); }
-        .btn-success { background: var(--ok); }
-        .btn-success:hover { background: #15803d; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .upload-box { background: #f1f5f9; border: 2px dashed #cbd5e1; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 12px; }
-        .upload-box input[type="file"] { display: none; }
-        .upload-label { font-size: 13px; font-weight: 600; color: var(--brand); cursor: pointer; display: inline-block; }
-        .upload-label:hover { text-decoration: underline; }
-        
-        .instructions { font-size: 13.5px; color: var(--mut); background: #eff6ff; border: 1px solid #bfdbfe; padding: 16px; border-radius: 8px; }
-        .instructions ul { margin: 10px 0 0; padding-left: 20px; }
-        .instructions li { margin-bottom: 6px; }
-        .instructions code { background: #dbeafe; color: #1e3a8a; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-        
-        #status { text-align: center; font-weight: 600; color: var(--ok); margin-top: 10px; display: none; }
-        #parseStatus { font-size: 12px; color: var(--mut); text-align: center; margin-top: 4px; }
     </style>
 </head>
-<body>
-
-<div class="container">
-    <div class="header">
-        <h1>Phần Mềm Đảo Đề Tiếng Anh (Chuẩn 2026)</h1>
-        <p>Đảo phần, Đảo đáp án, Tự động đồng bộ số câu hỏi trong lời dẫn và bài đọc.</p>
-    </div>
-
-    <div class="grid">
-        <div class="card">
-            <h2>
-                <span>1. Dữ liệu Đề Thi Gốc (Định dạng JSON)</span>
-            </h2>
-            <div class="upload-box">
-                <label class="upload-label" for="docxFile">📂 Tải lên đề thi định dạng Word (.docx) để tự động chuyển đổi sang JSON</label>
-                <input type="file" id="docxFile" accept=".docx" onchange="handleDocxUpload(event)">
-                <div id="parseStatus">Hỗ trợ phân tích cấu trúc đề chuẩn từ file Word.</div>
-            </div>
-            <textarea id="jsonInput" spellcheck="false"></textarea>
-        </div>
+<body class="bg-slate-50 text-slate-800 min-h-screen p-4 md:p-8">
+    <div class="max-w-6xl mx-auto space-y-6">
         
-        <div>
-            <div class="card" style="margin-bottom: 24px;">
-                <h2>2. Cấu hình Đảo đề</h2>
-                <div class="form-group">
-                    <label>Số lượng mã đề cần tạo (Max: 24)</label>
-                    <input type="number" id="numCodes" min="1" max="24" value="4">
-                </div>
-                <div class="form-group">
-                    <label>Mã đề bắt đầu (Vd: 101)</label>
-                    <input type="number" id="startCode" value="101">
-                </div>
-                
-                <button class="btn" id="btnShuffle" onclick="shuffleExam()">🎲 TIẾN HÀNH ĐẢO ĐỀ</button>
-                <div id="status">✅ Đã đảo xong! Đang xuất file...</div>
-                
-                <div id="downloadArea" style="display: none; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
-                    <button class="btn btn-success" onclick="downloadExams()">📄 TẢI XUỐNG ĐỀ THI (WORD)</button>
-                    <button class="btn btn-success" onclick="downloadKeys()">🔑 TẢI BẢNG ĐÁP ÁN (WORD)</button>
-                </div>
+        <!-- Header -->
+        <header class="bg-blue-700 text-white p-6 rounded-xl shadow-lg no-print">
+            <h1 class="text-2xl font-bold">PHẦN MỀM ĐẢO ĐỀ TIẾNG ANH THPT 2026</h1>
+            <p class="text-blue-100 text-sm mt-1">Hỗ trợ đảo câu hỏi, phương án & tạo ma trận đáp án tự động</p>
+        </header>
+
+        <!-- Form nhập liệu -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 no-print">
+            <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <label class="block font-semibold mb-2 text-slate-700">Dán đề thi gốc vào đây:</label>
+                <p class="text-xs text-slate-500 mb-2">Định dạng chuẩn: Mỗi câu bắt đầu bằng "Question X:" hoặc "Câu X:", đáp án ký hiệu A., B., C., D. Đánh dấu đáp án đúng bằng dấu * (Ví dụ: *A. Apple).</p>
+                <textarea id="rawInput" rows="14" class="w-full p-3 border border-slate-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Question 1: Mark the letter A, B, C, or D...&#10;*A. cat&#10;B. dog&#10;C. bird&#10;D. fish"></textarea>
             </div>
 
-            <div class="instructions">
-                <b>Nguyên tắc hoạt động:</b>
-                <ul>
-                    <li><b>Giữ nguyên văn bản:</b> Nội dung bài đọc và các câu hỏi trong từng phần được bảo toàn tuyệt đối, không bị xáo trộn vị trí nội bộ.</li>
-                    <li><b>Đảo phần & Đảo đáp án:</b> Các phần thi được xáo trộn với nhau, các phương án A, B, C, D trong mỗi câu được đảo ngẫu nhiên.</li>
-                    <li><b>Tự động cập nhật số câu:</b> Số câu trong lời dẫn (`instruction`) và các chỗ trống trong bài đọc (`(1)`, `(2)`...) tự động cập nhật khớp hoàn toàn với số thứ tự mới.</li>
-                </ul>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                <h2 class="font-semibold text-lg text-slate-700 border-b pb-2">Cấu hình đảo đề</h2>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Mã đề bắt đầu:</label>
+                    <input type="number" id="startCode" value="101" class="w-full p-2 border border-slate-300 rounded-lg">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Số lượng mã đề cần tạo:</label>
+                    <input type="number" id="totalCodes" value="4" min="1" max="10" class="w-full p-2 border border-slate-300 rounded-lg">
+                </div>
+
+                <div class="space-y-2 pt-2">
+                    <label class="flex items-center space-x-2 text-sm text-slate-700">
+                        <input type="checkbox" id="shuffleQuestions" checked class="rounded text-blue-600">
+                        <span>Đảo thứ tự câu hỏi</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm text-slate-700">
+                        <input type="checkbox" id="shuffleOptions" checked class="rounded text-blue-600">
+                        <span>Đảo phương án (A, B, C, D)</span>
+                    </label>
+                </div>
+
+                <button onclick="processShuffle()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg shadow transition">
+                    Tạo Mã Đề & Bảng Đáp Án
+                </button>
             </div>
         </div>
+
+        <!-- Kết quả -->
+        <div id="outputContainer" class="space-y-8"></div>
     </div>
-</div>
 
-<script>
-// Dữ liệu mẫu (JSON) chuẩn
-const defaultJSON = {
-  "header": {
-    "school": "BỘ GIÁO DỤC VÀ ĐÀO TẠO",
-    "examName": "KỲ THI TỐT NGHIỆP THPT NĂM 2026",
-    "subject": "Môn thi: TIẾNG ANH",
-    "time": "Thời gian làm bài: 50 phút"
-  },
-  "sections": [
-    {
-      "id": "s1",
-      "instruction": "Read the following leaflet and mark the letter A, B, C or D on your answer sheet to indicate the option that best fits each of the numbered blanks from 1 to 6.",
-      "passage": "GREEN HANDS CAMPAIGN\nThe School Youth Union is officially launching the campaign. If everyone (1)______ together, we will make a difference. Expand students' (2)______ of pollution.",
-      "questions": [
-        { "id": 1, "stem": "", "options": ["work", "worked", "have worked", "works"], "answer": 3 },
-        { "id": 2, "stem": "", "options": ["focus", "attention", "emphasis", "knowledge"], "answer": 3 }
-      ]
-    }
-  ]
-};
+    <script>
+        function parseExam(text) {
+            const lines = text.split('\n');
+            const questions = [];
+            let currentQ = null;
 
-document.getElementById('jsonInput').value = JSON.stringify(defaultJSON, null, 2);
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (!trimmed) return;
 
-let generatedExamsHTML = "";
-let generatedKeysHTML = "";
-
-function shuffleArray(array) {
-    let arr = array.slice();
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
-
-function parseMarkdown(text) {
-    if (!text) return "";
-    return text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-}
-
-function getOptionsLayoutHTML(options) {
-    let maxLen = Math.max(...options.map(o => (o.text || "").length));
-    const letters = ["A", "B", "C", "D"];
-    let html = `<table style="width:100%; border-collapse: collapse; border: none; margin-bottom: 6pt;">`;
-    
-    if (maxLen < 25) {
-        html += `<tr>`;
-        for(let i=0; i<4; i++){
-            html += `<td style="width:25%; border:none; padding:2px 0; vertical-align:top;"><b>${letters[i]}.</b> ${parseMarkdown(options[i].text)}</td>`;
-        }
-        html += `</tr>`;
-    } else if (maxLen < 60) {
-        html += `<tr>
-                    <td style="width:50%; border:none; padding:2px 0; vertical-align:top;"><b>A.</b> ${parseMarkdown(options[0].text)}</td>
-                    <td style="width:50%; border:none; padding:2px 0; vertical-align:top;"><b>B.</b> ${parseMarkdown(options[1].text)}</td>
-                 </tr>
-                 <tr>
-                    <td style="width:50%; border:none; padding:2px 0; vertical-align:top;"><b>C.</b> ${parseMarkdown(options[2].text)}</td>
-                    <td style="width:50%; border:none; padding:2px 0; vertical-align:top;"><b>D.</b> ${parseMarkdown(options[3].text)}</td>
-                 </tr>`;
-    } else {
-        for(let i=0; i<4; i++){
-            html += `<tr><td style="border:none; padding:2px 0; vertical-align:top;"><b>${letters[i]}.</b> ${parseMarkdown(options[i].text)}</td></tr>`;
-        }
-    }
-    html += `</table>`;
-    return html;
-}
-
-// Xử lý tải lên file Word (.docx) và chuyển đổi sang JSON chuẩn
-function handleDocxUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const statusEl = document.getElementById('parseStatus');
-    statusEl.textContent = "Đang đọc và phân tích tệp Word...";
-
-    const reader = new FileReader();
-    reader.onload = function(loadEvent) {
-        const arrayBuffer = loadEvent.target.result;
-        mammoth.extractRawText({ arrayBuffer: arrayBuffer })
-            .then(function(result) {
-                let text = result.value;
-                let parsedJSON = parseTextToExamJSON(text);
-                document.getElementById('jsonInput').value = JSON.stringify(parsedJSON, null, 2);
-                statusEl.textContent = "✅ Chuyển đổi file .docx sang JSON thành công!";
-            })
-            .catch(function(err) {
-                console.error(err);
-                statusEl.textContent = "❌ Lỗi đọc file Word!";
-            });
-    };
-    reader.readAsArrayBuffer(file);
-}
-
-function parseTextToExamJSON(rawText) {
-    let lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    
-    let examObj = {
-        "header": {
-            "school": "BỘ GIÁO DỤC VÀ ĐÀO TẠO",
-            "examName": "KỲ THI TỐT NGHIỆP THPT NĂM 2026",
-            "subject": "Môn thi: TIẾNG ANH",
-            "time": "Thời gian làm bài: 50 phút"
-        },
-        "sections": []
-    };
-
-    let currentSection = {
-        "id": "s1",
-        "instruction": "Read the following passage and mark the letter A, B, C or D to indicate the correct answer from 1 to 5.",
-        "passage": "",
-        "questions": []
-    };
-
-    let qIdCounter = 1;
-    let currentPassageLines = [];
-    let collectingPassage = false;
-
-    for (let i = 0; i < lines.length; i++) {
-        let line = lines[i];
-
-        if (line.toLowerCase().includes("read the") || line.toLowerCase().includes("mark the letter") || line.toLowerCase().includes("from question")) {
-            if (currentSection.questions.length > 0 || currentSection.passage) {
-                if (currentPassageLines.length > 0) {
-                    currentSection.passage = currentPassageLines.join("\n");
-                    currentPassageLines = [];
+                // Match câu hỏi (VD: Question 1:, Câu 1:)
+                if (/^(Question|Câu)\s+\d+[:.]/i.test(trimmed)) {
+                    if (currentQ) questions.push(currentQ);
+                    currentQ = {
+                        title: trimmed.replace(/^(Question|Câu)\s+\d+[:.]/i, '').trim(),
+                        options: [],
+                        correctIndex: -1
+                    };
+                } else if (currentQ && /^(\*?[A-D]\.)/.test(trimmed)) {
+                    // Match phương án A., B., C., D.
+                    let isCorrect = trimmed.startsWith('*');
+                    let optText = trimmed.replace(/^\*?[A-D]\.\s*/, '').trim();
+                    if (isCorrect) currentQ.correctIndex = currentQ.options.length;
+                    currentQ.options.push(optText);
+                } else if (currentQ) {
+                    currentQ.title += ' ' + trimmed;
                 }
-                examObj.sections.push(currentSection);
-                currentSection = {
-                    "id": "s" + (examObj.sections.length + 1),
-                    "instruction": line,
-                    "passage": "",
-                    "questions": []
-                };
-            } else {
-                currentSection.instruction = line;
-            }
-            collectingPassage = true;
-            continue;
-        }
-
-        let qMatch = line.match(/^(?:Question\s*(\d+)[\.:]?|\b(\d+)\.)\s*(.*)/i);
-        if (qMatch) {
-            if (collectingPassage && currentPassageLines.length > 0) {
-                currentSection.passage = currentPassageLines.join("\n");
-                currentPassageLines = [];
-                collectingPassage = false;
-            }
-
-            let stemText = qMatch[3] || "";
-            let options = ["Option A", "Option B", "Option C", "Option D"];
-            let answerIdx = 0;
-
-            let inlineOpts = stemText.match(/(?:[A-D]\.|\b[A-D]\))\s*([^A-D\t]+)/g);
-            if (inlineOpts && inlineOpts.length >= 2) {
-                options = inlineOpts.map(opt => opt.replace(/^[A-D][\.\)]\s*/, "").trim());
-                stemText = stemText.replace(/(?:[A-D]\.|\b[A-D]\))\s*[^A-D\t]+/g, "").trim();
-            } else if (i + 4 < lines.length && /^[A-D][\.\)]/.test(lines[i+1])) {
-                options = [
-                    lines[i+1].replace(/^[A-D][\.\)]\s*/, ""),
-                    lines[i+2].replace(/^[A-D][\.\)]\s*/, ""),
-                    lines[i+3].replace(/^[A-D][\.\)]\s*/, ""),
-                    lines[i+4].replace(/^[A-D][\.\)]\s*/, "")
-                ];
-                i += 4;
-            }
-
-            currentSection.questions.push({
-                "id": qIdCounter++,
-                "stem": stemText,
-                "options": options,
-                "answer": answerIdx
             });
-        } else if (collectingPassage) {
-            currentPassageLines.push(line);
+            if (currentQ) questions.push(currentQ);
+            return questions;
         }
-    }
 
-    if (currentPassageLines.length > 0 && !currentSection.passage) {
-        currentSection.passage = currentPassageLines.join("\n");
-    }
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
 
-    if (currentSection.questions.length > 0) {
-        examObj.sections.push(currentSection);
-    }
+        function processShuffle() {
+            const rawText = document.getElementById('rawInput').value;
+            const startCode = parseInt(document.getElementById('startCode').value) || 101;
+            const totalCodes = parseInt(document.getElementById('totalCodes').value) || 4;
+            const doShuffleQ = document.getElementById('shuffleQuestions').checked;
+            const doShuffleOpt = document.getElementById('shuffleOptions').checked;
 
-    return examObj.sections.length > 0 ? examObj : defaultJSON;
-}
+            const baseQuestions = parseExam(rawText);
+            if (baseQuestions.length === 0) {
+                alert("Không tìm thấy câu hỏi hợp lệ. Vui lòng kiểm tra lại định dạng input!");
+                return;
+            }
 
-// Hàm tiến hành đảo đề và tự động cập nhật số câu trong instruction và passage
-function shuffleExam() {
-    document.getElementById('status').style.display = 'block';
-    document.getElementById('status').textContent = 'Đang xử lý...';
-    document.getElementById('downloadArea').style.display = 'none';
+            const outputContainer = document.getElementById('outputContainer');
+            outputContainer.innerHTML = '';
 
-    setTimeout(() => {
-        try {
-            const rawJSON = document.getElementById('jsonInput').value;
-            const examData = JSON.parse(rawJSON);
-            let numCodes = parseInt(document.getElementById('numCodes').value);
-            let startCode = parseInt(document.getElementById('startCode').value);
-            
-            if (numCodes > 24) numCodes = 24;
-            
-            generatedExamsHTML = "";
-            let answerMatrix = {}; 
-            let totalQuestions = 0;
+            const answerMatrix = {}; // Store answers for key table
+            const optionLabels = ['A', 'B', 'C', 'D'];
 
-            for (let c = 0; c < numCodes; c++) {
-                let currentCode = startCode + c;
-                // Chỉ đảo thứ tự các phần (sections), không đảo câu hỏi bên trong section
-                let shuffledSections = shuffleArray(examData.sections);
-                
+            for (let c = 0; c < totalCodes; c++) {
+                const code = startCode + c;
+                answerMatrix[code] = [];
+
+                let qList = doShuffleQ ? shuffleArray(baseQuestions) : [...baseQuestions];
+
                 let examHtml = `
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <p style="margin:0; font-size: 14pt;">${examData.header.school}</p>
-                        <p style="margin:0; font-size: 14pt; font-weight: bold;">${examData.header.examName}</p>
-                        <p style="margin:0; font-size: 12pt;">${examData.header.subject}</p>
-                        <p style="margin:0; font-size: 12pt;">${examData.header.time}</p>
-                        <p style="margin:10px 0 0 0; font-size: 12pt; font-weight: bold; text-align:right;">Mã đề thi: ${currentCode}</p>
-                    </div>
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 page-break">
+                        <div class="flex justify-between items-center border-b pb-4 mb-6">
+                            <div>
+                                <h3 class="font-bold text-lg">KỲ THI TỐT NGHIỆP THPT NĂM 2026</h3>
+                                <p class="text-sm">Môn thi: TIẾNG ANH</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-block bg-slate-900 text-white font-mono px-4 py-1 rounded text-lg font-bold">MÃ ĐỀ: ${code}</span>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
                 `;
 
-                // BƯỚC 1: Xây dựng bảng ánh xạ câu hỏi cũ sang số thứ tự câu hỏi mới sau khi đảo phần
-                let globalQNum = 1;
-                let mapOldToNew = {}; 
-                
-                shuffledSections.forEach(sec => {
-                    sec.questions.forEach(q => {
-                        mapOldToNew[q.id] = globalQNum;
-                        globalQNum++;
+                qList.forEach((q, idx) => {
+                    let indices = q.options.map((_, i) => i);
+                    if (doShuffleOpt) indices = shuffleArray(indices);
+
+                    let correctOptLabel = 'N/A';
+                    let optionsHtml = '<div class="grid grid-cols-2 gap-2 mt-2">';
+
+                    indices.forEach((origIdx, newIdx) => {
+                        const label = optionLabels[newIdx];
+                        if (origIdx === q.correctIndex) {
+                            correctOptLabel = label;
+                        }
+                        optionsHtml += `<p><strong>${label}.</strong>${q.options[origIdx]}</p>`;
                     });
-                });
-                
-                if (c === 0) totalQuestions = globalQNum - 1;
+                    optionsHtml += '</div>';
 
-                // BƯỚC 2: Render nội dung đề thi, tự động cập nhật số câu trong instruction và passage
-                shuffledSections.forEach(sec => {
-                    let sectionQNums = sec.questions.map(q => mapOldToNew[q.id]);
-                    let startQ = Math.min(...sectionQNums);
-                    let endQ = Math.max(...sectionQNums);
+                    answerMatrix[code].push({ qNum: idx + 1, ans: correctOptLabel });
 
-                    // Cập nhật khoảng câu hỏi trong phần hướng dẫn (instruction)
-                    let instructionText = sec.instruction || "";
-                    instructionText = instructionText.replace(/\{start\}/gi, startQ).replace(/\{end\}/gi, endQ);
-                    // Tự động nhận diện các dải số dạng "from X to Y" hoặc "from question X to Y" để thay thế tự động
-                    instructionText = instructionText.replace(/(from\s+(?:question\s+)?)\d+(\s+to\s+)\d+/gi, `$1${startQ}$2${endQ}`);
-                    instructionText = instructionText.replace(/(from\s+blanks?\s+(?:from\s+)?)\d+(\s+to\s+)\d+/gi, `$1${startQ}$2${endQ}`);
-
-                    examHtml += `<p style="font-weight: bold; margin-top: 16pt;">${parseMarkdown(instructionText)}</p>`;
-                    
-                    // Cập nhật số thứ tự chỗ trống trong đoạn văn/bài đọc (passage) như (1), (2)...
-                    let passageText = sec.passage || "";
-                    if (passageText.trim() !== "") {
-                        passageText = passageText.replace(/\{start\}/gi, startQ).replace(/\{end\}/gi, endQ);
-                        
-                        // Cập nhật các chỗ trống cục bộ (1), (2), (3)... thành số thứ tự toàn cục mới tương ứng
-                        sec.questions.forEach((q, idx) => {
-                            let localNum = idx + 1;
-                            let newNum = sectionQNums[idx];
-                            let regexParen = new RegExp(`\\(${localNum}\\)`, 'g');
-                            passageText = passageText.replace(regexParen, `(${newNum})`);
-                        });
-
-                        examHtml += `<p style="margin-bottom: 12pt; text-align: justify;">${parseMarkdown(passageText)}</p>`;
-                    }
-
-                    // Render danh sách câu hỏi (giữ nguyên thứ tự nội bộ của bài đọc)
-                    sec.questions.forEach(q => {
-                        let currentQNumber = mapOldToNew[q.id];
-                        let prefix = `<b>Câu ${currentQNumber}:</b> `;
-                        examHtml += `<p style="margin: 6pt 0 4pt 0;">${prefix}${parseMarkdown(q.stem)}</p>`;
-
-                        // Đảo ngẫu nhiên vị trí các đáp án A, B, C, D
-                        let optionsArr = q.options.map((optText, idx) => {
-                            return { text: optText, isCorrect: (idx === q.answer) };
-                        });
-                        let shuffledOptions = shuffleArray(optionsArr);
-                        
-                        let correctIndex = shuffledOptions.findIndex(o => o.isCorrect);
-                        let letter = String.fromCharCode(65 + correctIndex); 
-                        
-                        if (!answerMatrix[currentQNumber]) answerMatrix[currentQNumber] = {};
-                        answerMatrix[currentQNumber][currentCode] = letter;
-
-                        examHtml += getOptionsLayoutHTML(shuffledOptions);
-                    });
+                    examHtml += `
+                        <div class="text-sm">
+                            <p class="font-semibold">Câu ${idx + 1}: ${q.title}</p>${optionsHtml}
+                        </div>
+                    `;
                 });
 
-                if (c < numCodes - 1) {
-                    examHtml += `<br clear="all" style="page-break-before:always" />`;
-                }
-                
-                generatedExamsHTML += examHtml;
+                examHtml += `</div>
+                    <div class="mt-6 no-print flex gap-2">
+                        <button onclick="window.print()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm hover:bg-slate-700">In mã đề ${code}</button>
+                    </div>
+                </div>`;
+
+                outputContainer.innerHTML += examHtml;
             }
 
-            // BƯỚC 3: Tạo bảng Ma Trận Đáp Án chính xác theo số câu mới
-            generatedKeysHTML = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <p style="margin:0; font-size: 16pt; font-weight: bold;">BẢNG ĐÁP ÁN CÁC MÃ ĐỀ</p>
-                </div>
+            // Bảng Ma Trận Đáp Án
+            let matrixHtml = `
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 page-break">
+                    <h3 class="font-bold text-xl mb-4 text-blue-700">MA TRẬN ĐÁP ÁN TỔNG HỢP</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse border border-slate-300 text-sm text-center">
+                            <thead>
+                                <tr class="bg-slate-100">
+                                    <th class="border border-slate-300 p-2">Câu</th>
+                                    ${Object.keys(answerMatrix).map(code => `<th class="border border-slate-300 p-2">Mã ${code}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
             `;
-            
-            let maxCols = 12;
-            let totalTables = Math.ceil(numCodes / maxCols);
-            let codesArr = Array.from({length: numCodes}, (_, i) => startCode + i);
 
-            for (let t = 0; t < totalTables; t++) {
-                let chunkCodes = codesArr.slice(t * maxCols, (t + 1) * maxCols);
-                
-                generatedKeysHTML += `<table style="width:100%; border-collapse: collapse; margin-bottom: 30px; text-align: center;">`;
-                generatedKeysHTML += `<tr><th style="border: 1px solid black; padding: 6px; background-color: #f2f2f2;">Câu \\ Mã</th>`;
-                chunkCodes.forEach(code => {
-                    generatedKeysHTML += `<th style="border: 1px solid black; padding: 6px; background-color: #f2f2f2;">${code}</th>`;
+            const totalQ = baseQuestions.length;
+            for (let qIdx = 0; qIdx < totalQ; qIdx++) {
+                matrixHtml += `<tr><td class="border border-slate-300 p-2 font-bold">${qIdx + 1}</td>`;
+                Object.keys(answerMatrix).forEach(code => {
+                    matrixHtml += `<td class="border border-slate-300 p-2">${answerMatrix[code][qIdx].ans}</td>`;
                 });
-                generatedKeysHTML += `</tr>`;
-                
-                for (let q = 1; q <= totalQuestions; q++) {
-                    generatedKeysHTML += `<tr><td style="border: 1px solid black; padding: 6px; font-weight: bold;">${q}</td>`;
-                    chunkCodes.forEach(code => {
-                        let ans = answerMatrix[q] && answerMatrix[q][code] ? answerMatrix[q][code] : "-";
-                        generatedKeysHTML += `<td style="border: 1px solid black; padding: 6px;">${ans}</td>`;
-                    });
-                    generatedKeysHTML += `</tr>`;
-                }
-                generatedKeysHTML += `</table>`;
-                
-                if (t < totalTables - 1) {
-                     generatedKeysHTML += `<br clear="all" style="page-break-before:always" />`;
-                }
+                matrixHtml += `</tr>`;
             }
 
-            document.getElementById('status').textContent = '✅ Đảo đề thành công! Mời tải file bên dưới.';
-            document.getElementById('downloadArea').style.display = 'block';
+            matrixHtml += `</tbody></table></div>
+                <button onclick="window.print()" class="mt-4 no-print bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">In Bảng Đáp Án</button>
+            </div>`;
 
-        } catch (error) {
-            document.getElementById('status').textContent = '❌ Lỗi: Cấu trúc JSON không hợp lệ!';
-            console.error(error);
+            outputContainer.innerHTML = matrixHtml + outputContainer.innerHTML;
         }
-    }, 500); 
-}
-
-function exportHTMLToWord(htmlContent, filename) {
-    const header = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head>
-            <meta charset='utf-8'>
-            <title>${filename}</title>
-            <style>
-                body { font-family: 'Times New Roman', serif; font-size: 13pt; }
-                p { margin: 0 0 6pt 0; }
-                table { border-collapse: collapse; }
-                td, th { vertical-align: top; }
-            </style>
-        </head>
-        <body>
-    `;
-    const footer = "</body></html>";
-    const sourceHTML = header + htmlContent + footer;
-    
-    const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename + '.doc';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
-
-function downloadExams() {
-    exportHTMLToWord(generatedExamsHTML, 'De_Thi_Tieng_Anh_Shuffled');
-}
-
-function downloadKeys() {
-    exportHTMLToWord(generatedKeysHTML, 'Dap_An_Cac_Ma_De');
-}
-</script>
+    </script>
 </body>
 </html>
