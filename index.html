@@ -4,32 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phần Mềm Đảo Đề Tiếng Anh THPT 2026</title>
+    
+    <!-- Tailwind CSS cho giao diện -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Mammoth.js để đọc file DOCX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+
     <style>
         @media print {
             .no-print { display: none !important; }
             .page-break { page-break-after: always; }
-            body { background: white; font-size: 11pt; color: black; }
+            body { background: white; font-size: 12pt; color: black; }
             .print-exam-container { border: none !important; box-shadow: none !important; padding: 0 !important; }
-            .print-matrix { width: 100%; border-collapse: collapse; }
-            .print-matrix th, .print-matrix td { border: 1px solid black; padding: 4px; text-align: center; font-size: 10pt; }
         }
-        /* Tùy chỉnh thanh cuộn cho textarea */
         textarea::-webkit-scrollbar { width: 8px; }
         textarea::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen p-4 md:p-8 font-sans">
+<body class="bg-slate-50 text-slate-900 min-h-screen p-4 md:p-8 font-serif">
     <div class="max-w-7xl mx-auto space-y-6">
         
         <!-- Header -->
         <header class="bg-blue-800 text-white p-6 rounded-2xl shadow-lg no-print flex flex-col md:flex-row justify-between items-center">
             <div>
-                <h1 class="text-2xl md:text-3xl font-bold">PHẦN MỀM ĐẢO ĐỀ TIẾNG ANH 2026</h1>
-                <p class="text-blue-200 mt-2 text-sm">Hỗ trợ tải tệp .txt, chia nhóm bài đọc, tùy chọn đảo chi tiết</p>
+                <h1 class="text-2xl md:text-3xl font-bold font-sans">PHẦN MỀM ĐẢO ĐỀ TIẾNG ANH 2026</h1>
+                <p class="text-blue-200 mt-2 text-sm font-sans">Hỗ trợ File DOCX & TXT | Xuất ra MS Word | Giữ nguyên form chuẩn</p>
             </div>
-            <div class="mt-4 md:mt-0 flex gap-2">
-                <button onclick="window.print()" class="bg-white text-blue-800 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition shadow">
+            <div class="mt-4 md:mt-0 flex gap-3">
+                <button onclick="exportAllToWord()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition shadow flex items-center gap-2">
+                    📄 Xuất Tất Cả Ra Word
+                </button>
+                <button onclick="window.print()" class="bg-white text-blue-800 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition shadow flex items-center gap-2">
                     🖨️ In Tất Cả
                 </button>
             </div>
@@ -38,33 +44,33 @@
         <!-- Main Form -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 no-print">
             
-            <!-- Left: Input Area -->
+            <!-- Input Area -->
             <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full">
-                <div class="flex justify-between items-end mb-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-4 gap-3">
                     <div>
-                        <label class="block font-bold text-lg text-slate-800">1. Nhập đề thi gốc</label>
-                        <p class="text-sm text-slate-500 mt-1">Dán nội dung hoặc tải lên tệp .txt</p>
+                        <label class="block font-bold text-lg font-sans text-slate-800">1. Nhập đề thi gốc</label>
+                        <p class="text-sm text-slate-500 mt-1 font-sans">Hỗ trợ tải lên tệp <strong class="text-blue-600">.docx</strong> hoặc <strong class="text-blue-600">.txt</strong></p>
                     </div>
-                    <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg border border-slate-300 font-medium transition flex items-center gap-2">
-                        <span>📁 Tải lên tệp .txt</span>
-                        <input type="file" id="fileInput" accept=".txt" class="hidden" onchange="handleFileUpload(event)">
+                    <label class="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg border border-blue-200 font-medium transition flex items-center gap-2 font-sans">
+                        <span>📁 Chọn File (DOCX / TXT)</span>
+                        <input type="file" id="fileInput" accept=".txt,.docx" class="hidden" onchange="handleFileUpload(event)">
                     </label>
                 </div>
                 
-                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mb-4 text-xs text-blue-800 space-y-1">
-                    <p><strong>Hướng dẫn định dạng:</strong></p>
-                    <ul class="list-disc pl-5">
-                        <li><strong>Phân nhóm/Bài đọc:</strong> Đặt trong dấu `---` (VD: <i>--- Bài đọc 1 ---</i>). Các câu hỏi dưới phần này sẽ đi liền với nhau.</li>
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-4 text-sm text-blue-800 space-y-2 font-sans">
+                    <p><strong>Hướng dẫn định dạng chuẩn:</strong></p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li><strong>Phân nhóm/Bài đọc:</strong> Đặt trong dấu `---` (VD: <i>--- Read the passage ---</i>).</li>
                         <li><strong>Câu hỏi:</strong> Bắt đầu bằng <i>Câu X:</i> hoặc <i>Question X:</i></li>
-                        <li><strong>Đáp án:</strong> <i>A.</i>, <i>B.</i>, <i>C.</i>, <i>D.</i>. Nếu có đáp án đúng, thêm dấu <i>*</i> phía trước (VD: <i>*A.</i>). Nếu không có dấu *, phần mềm vẫn đảo bình thường nhưng không xuất ma trận đáp án.</li>
+                        <li><strong>Đáp án:</strong> <i>A.</i>, <i>B.</i>, <i>C.</i>, <i>D.</i>. Thêm dấu <i>*</i> phía trước đáp án đúng (VD: <i>*A.</i>). Nếu không có, phần mềm sẽ không xuất bảng ma trận.</li>
                     </ul>
                 </div>
 
-                <textarea id="rawInput" class="w-full flex-grow min-h-[300px] p-4 border border-slate-300 rounded-xl font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none resize-y" placeholder="--- Mark the letter A, B, C, or D to indicate the correct answer ---&#10;Question 1: The weather is beautiful today, _______?&#10;*A. isn't it&#10;B. is it&#10;C. doesn't it&#10;D. does it&#10;&#10;--- Read the following passage and mark the correct answer ---&#10;Global warming is a serious issue...&#10;&#10;Question 2: What is the main idea?&#10;A. Idea 1&#10;*B. Idea 2&#10;C. Idea 3&#10;D. Idea 4"></textarea>
+                <textarea id="rawInput" class="w-full flex-grow min-h-[300px] p-4 border border-slate-300 rounded-xl text-base focus:ring-2 focus:ring-blue-500 focus:outline-none resize-y shadow-inner" placeholder="Tải lên file Word hoặc dán nội dung vào đây..."></textarea>
             </div>
 
-            <!-- Right: Config Area -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-full flex flex-col">
+            <!-- Config Area -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-full flex flex-col font-sans">
                 <h2 class="font-bold text-lg text-slate-800 border-b pb-3 mb-4">2. Cấu hình đảo đề</h2>
                 
                 <div class="space-y-5 flex-grow">
@@ -84,7 +90,7 @@
                             <input type="checkbox" id="shuffleSections" class="mt-1 w-4 h-4 text-blue-600 rounded">
                             <div>
                                 <span class="block text-sm font-semibold text-slate-800">Đảo các Phần / Bài đọc</span>
-                                <span class="block text-xs text-slate-500">Thay đổi vị trí các nhóm câu hỏi/bài đọc (được đánh dấu bằng `---`)</span>
+                                <span class="block text-xs text-slate-500">Đảo thứ tự các cụm câu hỏi/bài đọc (dấu `---`)</span>
                             </div>
                         </label>
                         
@@ -92,7 +98,6 @@
                             <input type="checkbox" id="shuffleQuestions" checked class="mt-1 w-4 h-4 text-blue-600 rounded">
                             <div>
                                 <span class="block text-sm font-semibold text-slate-800">Đảo thứ tự câu hỏi</span>
-                                <span class="block text-xs text-slate-500">Đảo ngẫu nhiên vị trí các câu hỏi bên trong từng phần</span>
                             </div>
                         </label>
 
@@ -100,14 +105,13 @@
                             <input type="checkbox" id="shuffleOptions" checked class="mt-1 w-4 h-4 text-blue-600 rounded">
                             <div>
                                 <span class="block text-sm font-semibold text-slate-800">Đảo phương án (A, B, C, D)</span>
-                                <span class="block text-xs text-slate-500">Nếu TẮT đảo câu hỏi ở trên và BẬT mục này = Chỉ đảo phương án, giữ nguyên thứ tự câu</span>
                             </div>
                         </label>
                     </div>
                 </div>
 
                 <button onclick="processShuffle()" class="mt-6 w-full bg-blue-700 hover:bg-blue-800 text-white font-bold text-lg py-4 rounded-xl shadow-md transition-all active:scale-[0.98]">
-                    🚀 BẮT ĐẦU ĐẢO ĐỀ
+                    🚀 TẠO MÃ ĐỀ
                 </button>
             </div>
         </div>
@@ -117,20 +121,39 @@
     </div>
 
     <script>
-        // Xử lý upload file txt
+        /* === XỬ LÝ ĐỌC FILE (TXT / DOCX) === */
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('rawInput').value = e.target.result;
-            };
-            reader.readAsText(file);
-            event.target.value = ''; // Reset input để có thể tải lại file cùng tên
+            
+            // Xử lý file DOCX bằng Mammoth.js
+            if (file.name.endsWith('.docx')) {
+                reader.onload = function(e) {
+                    mammoth.extractRawText({ arrayBuffer: e.target.result })
+                        .then(function(result){
+                            document.getElementById('rawInput').value = result.value;
+                        })
+                        .catch(function(err){
+                            alert("Lỗi khi đọc file DOCX: " + err.message);
+                        });
+                };
+                reader.readAsArrayBuffer(file);
+            } 
+            // Xử lý file TXT
+            else if (file.name.endsWith('.txt')) {
+                reader.onload = function(e) {
+                    document.getElementById('rawInput').value = e.target.result;
+                };
+                reader.readAsText(file);
+            } else {
+                alert("Vui lòng tải lên định dạng .docx hoặc .txt");
+            }
+            event.target.value = ''; // Reset
         }
 
-        // Hàm xáo trộn mảng (Fisher-Yates)
+        /* === THUẬT TOÁN ĐẢO (Fisher-Yates) === */
         function shuffleArray(array) {
             const arr = [...array];
             for (let i = arr.length - 1; i > 0; i--) {
@@ -140,12 +163,10 @@
             return arr;
         }
 
-        // Phân tích văn bản đề gốc
+        /* === PHÂN TÍCH ĐỀ GỐC === */
         function parseExam(text) {
             const lines = text.split('\n');
             let sections = [];
-            
-            // Khởi tạo phần mặc định đầu tiên
             let currentSection = { content: [], questions: [] };
             let currentQ = null;
 
@@ -153,253 +174,261 @@
                 const trimmed = line.trim();
                 if (!trimmed) return;
 
-                // Nếu gặp dấu phân cách '---' -> Bắt đầu một phần/nhóm mới
                 if (trimmed.startsWith('---')) {
-                    // Đẩy câu hỏi cuối cùng vào phần hiện tại nếu có
-                    if (currentQ) {
-                        currentSection.questions.push(currentQ);
-                        currentQ = null;
-                    }
-                    // Lưu phần hiện tại nếu có dữ liệu
+                    if (currentQ) { currentSection.questions.push(currentQ); currentQ = null; }
                     if (currentSection.content.length > 0 || currentSection.questions.length > 0) {
                         sections.push(currentSection);
                     }
-                    // Tạo phần mới, giữ lại chuỗi tiêu đề phần (loại bỏ dấu -)
-                    currentSection = { 
-                        content: [trimmed.replace(/^-+|-+$/g, '').trim()], 
-                        questions: [] 
-                    };
+                    currentSection = { content: [trimmed.replace(/^-+|-+$/g, '').trim()], questions: [] };
                 } 
-                // Nếu là dòng bắt đầu câu hỏi
                 else if (/^(Question|Câu)\s+\d+[:.]/i.test(trimmed)) {
                     if (currentQ) currentSection.questions.push(currentQ);
                     currentQ = {
                         rawText: trimmed.replace(/^(Question|Câu)\s+\d+[:.]\s*/i, ''),
-                        options: [],
-                        correctIndex: -1 // -1 nghĩa là chưa đánh dấu đáp án đúng
+                        options: [], correctIndex: -1
                     };
                 } 
-                // Nếu là dòng phương án A, B, C, D
                 else if (currentQ && /^(\*?[A-D][.)])/.test(trimmed)) {
                     let isCorrect = trimmed.startsWith('*');
                     let optText = trimmed.replace(/^\*?[A-D][.)]\s*/, '').trim();
                     if (isCorrect) currentQ.correctIndex = currentQ.options.length;
-                    
                     currentQ.options.push({ text: optText, isCorrect: isCorrect });
                 } 
-                // Bổ sung văn bản đa dòng cho phương án (nếu rớt dòng)
-                else if (currentQ && currentQ.options.length > 0 && /^[a-z]/.test(trimmed)===false ) {
+                else if (currentQ && currentQ.options.length > 0 && /^[a-z]/.test(trimmed)===false) {
                      currentQ.options[currentQ.options.length - 1].text += ' ' + trimmed;
                 }
-                // Bổ sung văn bản đa dòng cho câu hỏi
                 else if (currentQ) {
                     currentQ.rawText += '<br>' + trimmed;
                 } 
-                // Bổ sung văn bản (ví dụ bài đọc) vào content của Section
                 else {
                     currentSection.content.push(trimmed);
                 }
             });
 
             if (currentQ) currentSection.questions.push(currentQ);
-            if (currentSection.content.length > 0 || currentSection.questions.length > 0) {
-                sections.push(currentSection);
-            }
-
+            if (currentSection.content.length > 0 || currentSection.questions.length > 0) sections.push(currentSection);
             return sections;
         }
 
-        // Xử lý đảo đề chính
+        /* === TẠO VÀ HIỂN THỊ ĐỀ THI === */
         function processShuffle() {
             const rawText = document.getElementById('rawInput').value;
-            if (!rawText.trim()) {
-                alert("Vui lòng nhập nội dung đề thi!");
-                return;
-            }
+            if (!rawText.trim()) { alert("Vui lòng nhập nội dung đề thi!"); return; }
 
             const startCode = parseInt(document.getElementById('startCode').value) || 101;
             const totalCodes = parseInt(document.getElementById('totalCodes').value) || 4;
-            const doShuffleSections = document.getElementById('shuffleSections').checked;
-            const doShuffleQuestions = document.getElementById('shuffleQuestions').checked;
-            const doShuffleOptions = document.getElementById('shuffleOptions').checked;
+            const doShuffleSec = document.getElementById('shuffleSections').checked;
+            const doShuffleQ = document.getElementById('shuffleQuestions').checked;
+            const doShuffleOpt = document.getElementById('shuffleOptions').checked;
 
             const baseSections = parseExam(rawText);
             
-            // Đếm tổng số câu hỏi để kiểm tra tính hợp lệ
-            let totalQuestionsCount = 0;
-            let hasAnyCorrectAnswer = false;
-
+            let totalQCount = 0; let hasCorrectAns = false;
             baseSections.forEach(sec => {
-                totalQuestionsCount += sec.questions.length;
-                sec.questions.forEach(q => {
-                    if (q.correctIndex !== -1) hasAnyCorrectAnswer = true;
-                });
+                totalQCount += sec.questions.length;
+                sec.questions.forEach(q => { if (q.correctIndex !== -1) hasCorrectAns = true; });
             });
 
-            if (totalQuestionsCount === 0) {
-                alert("Không nhận diện được câu hỏi nào. Vui lòng kiểm tra lại định dạng (Cần có chữ 'Câu X:' hoặc 'Question X:').");
+            if (totalQCount === 0) {
+                alert("Không nhận diện được câu hỏi. Đảm bảo bắt đầu bằng 'Câu X:' hoặc 'Question X:'");
                 return;
             }
 
-            const outputContainer = document.getElementById('outputContainer');
-            outputContainer.innerHTML = '';
+            const outContainer = document.getElementById('outputContainer');
+            outContainer.innerHTML = '';
 
             const answerMatrix = {}; 
-            const optionLabels = ['A', 'B', 'C', 'D'];
+            const optLabels = ['A', 'B', 'C', 'D'];
 
-            // Vòng lặp tạo từng mã đề
             for (let c = 0; c < totalCodes; c++) {
                 const code = startCode + c;
-                answerMatrix[code] = []; // Mảng chứa đáp án của mã đề này (chỉ mục mảng = số thứ tự câu hỏi mới)
+                answerMatrix[code] = [];
 
-                // 1. Sao chép và đảo Sections nếu cần
-                let sectionsForThisCode = baseSections.map(sec => ({
-                    content: [...sec.content],
-                    questions: [...sec.questions] // Shallow copy array câu hỏi
+                let codeSections = baseSections.map(sec => ({
+                    content: [...sec.content], questions: [...sec.questions]
                 }));
 
-                if (doShuffleSections) {
-                    sectionsForThisCode = shuffleArray(sectionsForThisCode);
-                }
+                if (doShuffleSec) codeSections = shuffleArray(codeSections);
 
+                // Dùng Table Layout cho Tiêu đề để xuất Word không bị lệch
                 let examHtml = `
-                    <div class="print-exam-container bg-white p-8 rounded-2xl shadow-md border border-slate-200 page-break">
-                        <div class="flex justify-between items-start border-b-2 border-slate-800 pb-4 mb-6">
-                            <div class="text-center w-1/2">
-                                <h3 class="font-bold text-lg uppercase">BỘ GIÁO DỤC VÀ ĐÀO TẠO</h3>
-                                <p class="font-semibold text-sm">ĐỀ THI MINH HỌA NĂM 2026</p>
-                            </div>
-                            <div class="text-center w-1/2">
-                                <p class="font-bold text-lg uppercase">BÀI THI: NGOẠI NGỮ</p>
-                                <p class="font-semibold text-sm">Môn thi: TIẾNG ANH</p>
-                                <div class="mt-2 text-right w-full flex justify-end">
-                                    <div class="border-2 border-slate-800 px-4 py-1 text-lg font-bold w-max">
+                    <div id="exam-doc-${code}" class="print-exam-container bg-white p-8 rounded-2xl shadow-md border border-slate-200 page-break mb-8">
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-family: 'Times New Roman', serif; font-size: 13pt;">
+                            <tr>
+                                <td style="width: 45%; text-align: center; vertical-align: top;">
+                                    <strong>BỘ GIÁO DỤC VÀ ĐÀO TẠO</strong><br>
+                                    <strong style="text-decoration: underline;">ĐỀ THI MINH HỌA NĂM 2026</strong>
+                                </td>
+                                <td style="width: 55%; text-align: center; vertical-align: top;">
+                                    <strong>BÀI THI: NGOẠI NGỮ</strong><br>
+                                    Môn thi: <strong>TIẾNG ANH</strong><br>
+                                    <div style="border: 2px solid black; padding: 5px 15px; font-weight: bold; display: inline-block; margin-top: 8px;">
                                         MÃ ĐỀ: ${code}
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="space-y-6">
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <div style="font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.3;">
                 `;
 
-                let globalQuestionCounter = 1; // Đánh số lại từ 1 cho toàn bài
+                let qCounter = 1;
 
-                // 2. Xử lý từng phần (Section)
-                sectionsForThisCode.forEach(sec => {
+                codeSections.forEach(sec => {
                     if (sec.content.length > 0 || sec.questions.length > 0) {
-                        examHtml += `<div class="section-container space-y-4">`;
                         
-                        // In nội dung của phần (tiêu đề, bài đọc...)
                         if (sec.content.length > 0) {
-                            examHtml += `<div class="font-bold text-justify bg-slate-50 p-3 rounded italic text-[11pt]">`;
-                            sec.content.forEach(p => {
-                                if(p) examHtml += `<p class="mb-2">${p}</p>`;
-                            });
-                            examHtml += `</div>`;
+                            examHtml += `<div style="font-weight: bold; text-align: justify; margin-bottom: 10px; margin-top: 15px;"><i>`;
+                            sec.content.forEach(p => { if(p) examHtml += `<p style="margin: 0 0 5px 0;">${p}</p>`; });
+                            examHtml += `</i></div>`;
                         }
 
-                        // 3. Đảo câu hỏi trong phần nếu cần
-                        let qList = doShuffleQuestions ? shuffleArray(sec.questions) : [...sec.questions];
+                        let qList = doShuffleQ ? shuffleArray(sec.questions) : [...sec.questions];
 
-                        // In từng câu hỏi
                         qList.forEach(q => {
-                            // 4. Đảo phương án nếu cần
                             let optIndices = q.options.map((_, i) => i);
-                            if (doShuffleOptions) optIndices = shuffleArray(optIndices);
+                            if (doShuffleOpt) optIndices = shuffleArray(optIndices);
 
-                            let correctOptLabel = 'N/A';
-                            let optionsHtml = '<div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 ml-4">';
+                            let correctAns = 'N/A';
+                            const mappedOpts = [];
 
                             optIndices.forEach((origIdx, newIdx) => {
-                                const label = optionLabels[newIdx];
                                 const opt = q.options[origIdx];
-                                
-                                if (opt.isCorrect) correctOptLabel = label;
-                                
-                                optionsHtml += `
-                                    <div class="flex">
-                                        <span class="font-bold mr-2">${label}.</span> 
-                                        <span>${opt.text}</span>
-                                    </div>
-                                `;
+                                if (opt.isCorrect) correctAns = optLabels[newIdx];
+                                mappedOpts.push(`<strong>${optLabels[newIdx]}.</strong> ${opt.text}`);
                             });
-                            optionsHtml += '</div>';
 
-                            // Lưu đáp án vào ma trận với số thứ tự mới
-                            answerMatrix[code].push({
-                                qNum: globalQuestionCounter,
-                                ans: correctOptLabel
-                            });
+                            answerMatrix[code].push({ qNum: qCounter, ans: correctAns });
+
+                            // Layout 4 phương án bằng Bảng (2 dòng, 2 cột) để chuẩn Word
+                            let optHtml = '';
+                            if(mappedOpts.length === 4) {
+                                optHtml = `
+                                <table style="width: 100%; border: none; margin-top: 5px; margin-bottom: 12px; margin-left: 15px;">
+                                    <tr>
+                                        <td style="width: 50%; vertical-align: top; padding-bottom: 5px;">${mappedOpts[0]}</td>
+                                        <td style="width: 50%; vertical-align: top; padding-bottom: 5px;">${mappedOpts[1]}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 50%; vertical-align: top;">${mappedOpts[2]}</td>
+                                        <td style="width: 50%; vertical-align: top;">${mappedOpts[3]}</td>
+                                    </tr>
+                                </table>`;
+                            } else {
+                                // Nếu số đáp án khác 4 (VD True/False)
+                                optHtml = `<div style="margin-left: 15px; margin-bottom: 12px;">` + mappedOpts.join('<br>') + `</div>`;
+                            }
 
                             examHtml += `
-                                <div class="question-block text-[11pt]">
-                                    <div class="flex">
-                                        <strong class="whitespace-nowrap mr-2">Câu ${globalQuestionCounter}:</strong>
-                                        <span class="text-justify">${q.rawText}</span>
-                                    </div>
-                                    ${optionsHtml}
+                                <div style="text-align: justify; margin-top: 10px;">
+                                    <strong>Câu ${qCounter}:</strong> ${q.rawText}
                                 </div>
+                                ${optHtml}
                             `;
-                            globalQuestionCounter++;
+                            qCounter++;
                         });
-
-                        examHtml += `</div>`;
                     }
                 });
 
                 examHtml += `
-                        <div class="text-center italic mt-8 border-t pt-4">---------- HẾT ----------</div>
+                            <div style="text-align: center; margin-top: 30px; font-weight: bold;">
+                                ---------- HẾT ----------
+                            </div>
                         </div>
+                    </div>
+                    
+                    <!-- Nút thao tác riêng cho mã đề này -->
+                    <div class="no-print flex gap-2 justify-end mb-10">
+                        <button onclick="exportSingleWord('exam-doc-${code}', 'Ma_De_${code}')" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 font-sans shadow">📄 Tải Word (Mã ${code})</button>
                     </div>
                 `;
 
-                outputContainer.innerHTML += examHtml;
+                outContainer.innerHTML += examHtml;
             }
 
-            // TẠO BẢNG MA TRẬN ĐÁP ÁN (Chỉ tạo khi có ít nhất 1 đáp án đúng)
-            if (hasAnyCorrectAnswer) {
+            // MA TRẬN ĐÁP ÁN
+            if (hasCorrectAns) {
                 let matrixHtml = `
-                    <div class="print-exam-container bg-white p-8 rounded-2xl shadow-md border border-slate-200 page-break">
-                        <h3 class="font-bold text-2xl mb-6 text-center uppercase">BẢNG ĐÁP ÁN TỔNG HỢP</h3>
-                        <div class="overflow-x-auto">
-                            <table class="print-matrix w-full border-collapse border border-slate-800 text-center">
-                                <thead>
-                                    <tr class="bg-slate-100">
-                                        <th class="border border-slate-800 p-3 font-bold bg-slate-200">Câu</th>
-                                        ${Object.keys(answerMatrix).map(code => `<th class="border border-slate-800 p-3 font-bold">Mã ${code}</th>`).join('')}
-                                    </tr>
-                                </thead>
-                                <tbody>
+                    <div id="matrix-doc" class="print-exam-container bg-white p-8 rounded-2xl shadow-md border border-slate-200 page-break mb-8">
+                        <h3 style="font-weight: bold; font-size: 16pt; text-align: center; margin-bottom: 20px; font-family: 'Times New Roman', serif;">BẢNG ĐÁP ÁN TỔNG HỢP</h3>
+                        <table style="width: 100%; border-collapse: collapse; text-align: center; font-family: 'Times New Roman', serif; font-size: 11pt;" border="1">
+                            <thead>
+                                <tr style="background-color: #f3f4f6;">
+                                    <th style="border: 1px solid black; padding: 8px;">Câu</th>
+                                    ${Object.keys(answerMatrix).map(code => `<th style="border: 1px solid black; padding: 8px;">Mã ${code}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
                 `;
 
-                for (let qIdx = 0; qIdx < totalQuestionsCount; qIdx++) {
-                    matrixHtml += `<tr><td class="border border-slate-800 p-2 font-bold bg-slate-50">${qIdx + 1}</td>`;
+                for (let qIdx = 0; qIdx < totalQCount; qIdx++) {
+                    matrixHtml += `<tr><td style="border: 1px solid black; padding: 5px; font-weight: bold;">${qIdx + 1}</td>`;
                     Object.keys(answerMatrix).forEach(code => {
                         let ans = answerMatrix[code][qIdx].ans;
-                        matrixHtml += `<td class="border border-slate-800 p-2 ${ans === 'N/A' ? 'text-slate-400' : 'font-semibold'}">${ans}</td>`;
+                        matrixHtml += `<td style="border: 1px solid black; padding: 5px;">${ans}</td>`;
                     });
                     matrixHtml += `</tr>`;
                 }
 
-                matrixHtml += `</tbody></table></div></div>`;
-                // Đưa bảng đáp án lên đầu container kết quả
-                outputContainer.innerHTML = matrixHtml + outputContainer.innerHTML;
-            } else {
-                // Hiển thị thông báo nếu không xuất bảng đáp án
-                const msgHtml = `
-                    <div class="bg-orange-50 border-l-4 border-orange-400 p-4 mb-6 rounded-r-xl no-print">
-                        <div class="flex">
-                            <div class="flex-shrink-0"><span class="text-orange-400">⚠️</span></div>
-                            <div class="ml-3">
-                                <p class="text-sm text-orange-700">
-                                    <strong>Lưu ý:</strong> Đề gốc không có câu nào được đánh dấu đáp án đúng (*). Đề thi vẫn được đảo thành công nhưng Bảng ma trận đáp án sẽ bị ẩn.
-                                </p>
-                            </div>
-                        </div>
+                matrixHtml += `</tbody></table></div>
+                    <div class="no-print flex gap-2 justify-end mb-10">
+                        <button onclick="exportSingleWord('matrix-doc', 'Ma_Tran_Dap_An')" class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 font-sans shadow">📄 Tải File Word Bảng Đáp Án</button>
                     </div>
                 `;
-                outputContainer.innerHTML = msgHtml + outputContainer.innerHTML;
+                outContainer.innerHTML = matrixHtml + outContainer.innerHTML;
             }
+        }
+
+        /* === HÀM XUẤT FILE WORD (Chung) === */
+        function generateWordBlob(htmlContent) {
+            const preHtml = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>Export HTML To Doc</title></head><body>
+            `;
+            const postHtml = "</body></html>";
+            return new Blob(['\ufeff', preHtml + htmlContent + postHtml], { type: 'application/msword' });
+        }
+
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename + '.doc'; // MS Word sẽ đọc file này bình thường
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        /* Xuất riêng lẻ 1 phần tử */
+        function exportSingleWord(elementId, filename) {
+            const el = document.getElementById(elementId).cloneNode(true);
+            downloadBlob(el.innerHTML, filename);
+        }
+
+        /* Xuất TẤT CẢ ra 1 file Word duy nhất */
+        function exportAllToWord() {
+            const outContainer = document.getElementById('outputContainer');
+            if(outContainer.innerHTML.trim() === '') {
+                alert("Vui lòng tạo mã đề trước khi xuất file!");
+                return;
+            }
+
+            const clone = outContainer.cloneNode(true);
+            
+            // Xóa các nút hiển thị thao tác (Tải word lẻ...)
+            clone.querySelectorAll('.no-print').forEach(btn => btn.remove());
+            
+            // Xử lý ngắt trang trong Word (thêm thẻ br page-break)
+            const pages = clone.querySelectorAll('.page-break');
+            pages.forEach((page, index) => {
+                if (index < pages.length - 1) {
+                    page.insertAdjacentHTML('beforeend', '<br clear="all" style="page-break-before:always; mso-break-type:page-break" />');
+                }
+            });
+
+            downloadBlob(clone.innerHTML, 'Toan_Bo_De_Thi_Va_Dap_An');
         }
     </script>
 </body>
