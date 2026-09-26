@@ -41,8 +41,6 @@
         .btn:hover { background: var(--brand-dark); }
         .btn-success { background: var(--ok); }
         .btn-success:hover { background: #15803d; }
-        .btn-secondary { background: #475569; }
-        .btn-secondary:hover { background: #334155; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .upload-box { background: #f1f5f9; border: 2px dashed #cbd5e1; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 12px; }
@@ -64,7 +62,7 @@
 <div class="container">
     <div class="header">
         <h1>Phần Mềm Đảo Đề Tiếng Anh (Chuẩn 2026)</h1>
-        <p>Đảo phần, Đảo đáp án, Cố định thứ tự câu trong phần & Tự động cập nhật số câu hỏi trong bài đọc.</p>
+        <p>Đảo phần, Đảo đáp án, Tự động đồng bộ số câu hỏi trong lời dẫn và bài đọc.</p>
     </div>
 
     <div class="grid">
@@ -73,9 +71,9 @@
                 <span>1. Dữ liệu Đề Thi Gốc (Định dạng JSON)</span>
             </h2>
             <div class="upload-box">
-                <label class="upload-label" for="docxFile">📂 Tải lên đề thi định dạng Word (.docx) để chuyển đổi sang JSON</label>
+                <label class="upload-label" for="docxFile">📂 Tải lên đề thi định dạng Word (.docx) để tự động chuyển đổi sang JSON</label>
                 <input type="file" id="docxFile" accept=".docx" onchange="handleDocxUpload(event)">
-                <div id="parseStatus">Hỗ trợ tự động phân tích cấu trúc đề chuẩn từ file Word.</div>
+                <div id="parseStatus">Hỗ trợ phân tích cấu trúc đề chuẩn từ file Word.</div>
             </div>
             <textarea id="jsonInput" spellcheck="false"></textarea>
         </div>
@@ -102,11 +100,10 @@
             </div>
 
             <div class="instructions">
-                <b>Hướng dẫn sử dụng:</b>
+                <b>Lưu ý về số thứ tự tự động:</b>
                 <ul>
-                    <li>Bạn có thể bấm chọn file <code>.docx</code> gốc để hệ thống tự phân tích và sinh mã JSON vào ô bên cạnh.</li>
-                    <li>Trong phần <code>instruction</code> hoặc <code>passage</code>, hãy dùng cú pháp <code>{số_câu}</code> (ví dụ: <code>{15}</code>). Khi đảo đề, hệ thống sẽ tự động tìm và đổi số đó thành số thứ tự câu hỏi mới tương ứng.</li>
-                    <li>Hệ thống tự động căn chỉnh trình bày và độ dài các phương án giống hệt bản gốc khi xuất ra file Word.</li>
+                    <li>Trong phần <code>instruction</code> hoặc <code>passage</code>, hãy sử dụng <code>{start}</code> và <code>{end}</code> (hoặc các mốc số như <code>{1}</code>, <code>{2}</code>...).</li>
+                    <li>Khi đảo phần thi, hệ thống sẽ tự động quét và cập nhật lại chính xác khoảng câu hỏi (ví dụ: từ câu 1 đến câu 6 sẽ tự chuyển thành từ câu 7 đến câu 12 nếu phần đó bị đảo xuống dưới).</li>
                 </ul>
             </div>
         </div>
@@ -114,7 +111,7 @@
 </div>
 
 <script>
-// Dữ liệu mẫu (JSON) cho Đề Tiếng Anh mặc định ban đầu
+// Dữ liệu mẫu (JSON) cho Đề Tiếng Anh mặc định
 const defaultJSON = {
   "header": {
     "school": "SỞ GIÁO DỤC VÀ ĐÀO TẠO",
@@ -125,52 +122,30 @@ const defaultJSON = {
   "sections": [
     {
       "id": "s1",
-      "instruction": "Mark the letter A, B, C, or D on your answer sheet to indicate the word whose underlined part differs from the other three in pronunciation in each of the following questions.",
-      "passage": "",
+      "instruction": "Read the following leaflet and mark the letter A, B, C or D on your answer sheet to indicate the option that best fits each of the numbered blanks from {start} to {end}.",
+      "passage": "GREEN HANDS CAMPAIGN\nThe School Youth Union is officially launching the campaign. If everyone ({1})______ together, we will make a difference. Expand students' ({2})______ of pollution.",
       "questions": [
-        { "id": 1, "stem": "", "options": ["n**a**tion", "c**a**ve", "h**a**t", "f**a**ce"], "answer": 2 },
-        { "id": 2, "stem": "", "options": ["stopp**ed**", "look**ed**", "laugh**ed**", "provid**ed**"], "answer": 3 }
+        { "id": 1, "stem": "", "options": ["work", "worked", "have worked", "works"], "answer": 3 },
+        { "id": 2, "stem": "", "options": ["focus", "attention", "emphasis", "knowledge"], "answer": 3 }
       ]
     },
     {
       "id": "s2",
-      "instruction": "Mark the letter A, B, C, or D on your answer sheet to indicate the correct answer to each of the following questions.",
+      "instruction": "Mark the letter A, B, C or D on your answer sheet to indicate the correct answer to each of the following questions from {start} to {end}.",
       "passage": "",
       "questions": [
         { "id": 3, "stem": "They have been learning English ______ 2010.", "options": ["in", "since", "for", "from"], "answer": 1 },
         { "id": 4, "stem": "The more you study, ______ you will become.", "options": ["the smartest", "smarter", "the smarter", "smartest"], "answer": 2 }
       ]
-    },
-    {
-      "id": "s3",
-      "instruction": "Read the following passage and mark the letter A, B, C, or D on your answer sheet to indicate the correct word or phrase that best fits each of the numbered blanks from {5} to {7}.",
-      "passage": "Technology has advanced rapidly in recent years. Many people believe that computers will (5) ______ humans in various jobs. Furthermore, the internet has made it easier to (6) ______ with people across the globe. However, this also brings some risks such as (7) ______ issues.",
-      "questions": [
-        { "id": 5, "stem": "", "options": ["replace", "change", "transform", "alter"], "answer": 0 },
-        { "id": 6, "stem": "", "options": ["contact", "connect", "communicate", "call"], "answer": 2 },
-        { "id": 7, "stem": "", "options": ["private", "privacy", "privately", "privatize"], "answer": 1 }
-      ]
-    },
-    {
-      "id": "s4",
-      "instruction": "Read the following passage and mark the letter A, B, C, or D on your answer sheet to indicate the correct answer to each of the questions from {8} to {10}.",
-      "passage": "Global warming is a serious problem. It causes sea levels to rise and weather patterns to change. Scientists warn that if we do not reduce carbon emissions, the consequences will be catastrophic. Many countries are now investing in renewable energy sources like wind and solar power.",
-      "questions": [
-        { "id": 8, "stem": "What is the main idea of the passage?", "options": ["The benefits of renewable energy.", "The dangers of global warming and the need for action.", "How to measure carbon emissions.", "The history of weather patterns."], "answer": 1 },
-        { "id": 9, "stem": "The word 'catastrophic' is closest in meaning to ______.", "options": ["beneficial", "disastrous", "minor", "predictable"], "answer": 1 },
-        { "id": 10, "stem": "According to the passage, what are countries doing to help?", "options": ["Building higher walls against sea levels.", "Reducing the use of wind power.", "Investing in renewable energy.", "Ignoring the scientists' warnings."], "answer": 2 }
-      ]
     }
   ]
 };
 
-// Khởi tạo giá trị mặc định cho textarea
 document.getElementById('jsonInput').value = JSON.stringify(defaultJSON, null, 2);
 
 let generatedExamsHTML = "";
 let generatedKeysHTML = "";
 
-// Thuật toán xáo trộn mảng Fisher-Yates
 function shuffleArray(array) {
     let arr = array.slice();
     for (let i = arr.length - 1; i > 0; i--) {
@@ -180,13 +155,11 @@ function shuffleArray(array) {
     return arr;
 }
 
-// Chuyển Markdown In đậm (**) thành thẻ <b>
 function parseMarkdown(text) {
     if (!text) return "";
     return text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
 }
 
-// Xác định định dạng cột (4 cột, 2 cột, 1 cột) dựa trên độ dài đáp án
 function getOptionsLayoutHTML(options) {
     let maxLen = Math.max(...options.map(o => (o.text || "").length));
     const letters = ["A", "B", "C", "D"];
@@ -216,7 +189,7 @@ function getOptionsLayoutHTML(options) {
     return html;
 }
 
-// TÍNH NĂNG MỚI: Đọc file Word (.docx) và tự động trích xuất cấu trúc sang JSON chuẩn
+// Xử lý tải lên file Word (.docx) và chuyển đổi sang JSON chuẩn
 function handleDocxUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -236,20 +209,19 @@ function handleDocxUpload(event) {
             })
             .catch(function(err) {
                 console.error(err);
-                statusEl.textContent = "❌ Lỗi đọc file Word. Vui lòng thử lại!";
+                statusEl.textContent = "❌ Lỗi đọc file Word!";
             });
     };
     reader.readAsArrayBuffer(file);
 }
 
-// Hàm thông minh phân tích văn bản thô từ Word để tạo cấu trúc JSON đúng định dạng phần mềm
 function parseTextToExamJSON(rawText) {
     let lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     
     let examObj = {
         "header": {
             "school": "BỘ GIÁO DỤC VÀ ĐÀO TẠO",
-            "examName": "KỲ THI TỐT NGHIỆP TRUNG HỌC PHỔ THÔNG NĂM 2026",
+            "examName": "KỲ THI TỐT NGHIỆP THPT NĂM 2026",
             "subject": "Môn thi: TIẾNG ANH",
             "time": "Thời gian làm bài: 50 phút"
         },
@@ -258,7 +230,7 @@ function parseTextToExamJSON(rawText) {
 
     let currentSection = {
         "id": "s1",
-        "instruction": "Mark the letter A, B, C or D on your answer sheet to indicate the option that best fits each of the numbered blanks.",
+        "instruction": "Read the following passage and mark the letter A, B, C or D to indicate the correct answer from {start} to {end}.",
         "passage": "",
         "questions": []
     };
@@ -270,8 +242,8 @@ function parseTextToExamJSON(rawText) {
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
 
-        // Nhận diện dòng Instruction (thường bắt đầu bằng Read, Mark, Choosen...)
-        if (line.toLowerCase().startsWith("read the") || line.toLowerCase().startsWith("mark the letter") || line.toLowerCase().startsWith("choosing")) {
+        // Tự động chuẩn hóa các câu lệnh chỉ dẫn có dải số tĩnh thành {start} và {end} để hệ thống tự quản lý
+        if (line.toLowerCase().includes("read the") || line.toLowerCase().includes("mark the letter") || line.toLowerCase().includes("from question")) {
             if (currentSection.questions.length > 0 || currentSection.passage) {
                 if (currentPassageLines.length > 0) {
                     currentSection.passage = currentPassageLines.join("\n");
@@ -280,18 +252,17 @@ function parseTextToExamJSON(rawText) {
                 examObj.sections.push(currentSection);
                 currentSection = {
                     "id": "s" + (examObj.sections.length + 1),
-                    "instruction": line,
+                    "instruction": line.replace(/from\s+\d+\s+to\s+\d+/gi, "from {start} to {end}").replace(/from\s+question\s+\d+\s+to\s+\d+/gi, "from {start} to {end}"),
                     "passage": "",
                     "questions": []
                 };
             } else {
-                currentSection.instruction = line;
+                currentSection.instruction = line.replace(/from\s+\d+\s+to\s+\d+/gi, "from {start} to {end}").replace(/from\s+question\s+\d+\s+to\s+\d+/gi, "from {start} to {end}");
             }
             collectingPassage = true;
             continue;
         }
 
-        // Nhận diện câu hỏi trắc nghiệm thông thường (Ví dụ: Question 1. hoặc 1. A...)
         let qMatch = line.match(/^(?:Question\s*(\d+)[\.:]?|\b(\d+)\.)\s*(.*)/i);
         if (qMatch) {
             if (collectingPassage && currentPassageLines.length > 0) {
@@ -304,14 +275,11 @@ function parseTextToExamJSON(rawText) {
             let options = ["Option A", "Option B", "Option C", "Option D"];
             let answerIdx = 0;
 
-            // Kiểm tra xem các đáp án A, B, C, D có nằm cùng dòng hay dòng tiếp theo
             let inlineOpts = stemText.match(/(?:[A-D]\.|\b[A-D]\))\s*([^A-D\t]+)/g);
             if (inlineOpts && inlineOpts.length >= 2) {
-                // Tách các đáp án trên cùng dòng
                 options = inlineOpts.map(opt => opt.replace(/^[A-D][\.\)]\s*/, "").trim());
                 stemText = stemText.replace(/(?:[A-D]\.|\b[A-D]\))\s*[^A-D\t]+/g, "").trim();
             } else if (i + 4 < lines.length && /^[A-D][\.\)]/.test(lines[i+1])) {
-                // Các đáp án nằm ở 4 dòng kế tiếp
                 options = [
                     lines[i+1].replace(/^[A-D][\.\)]\s*/, ""),
                     lines[i+2].replace(/^[A-D][\.\)]\s*/, ""),
@@ -340,15 +308,10 @@ function parseTextToExamJSON(rawText) {
         examObj.sections.push(currentSection);
     }
 
-    // Nếu file Word trống hoặc không bóc tách được, trả về mặc định mẫu chuẩn để phần mềm không bị lỗi
-    if (examObj.sections.length === 0) {
-        return defaultJSON;
-    }
-
-    return examObj;
+    return examObj.sections.length > 0 ? examObj : defaultJSON;
 }
 
-// Hàm chính: Đảo đề
+// Hàm chính tiến hành đảo đề và tự động thay đổi số thứ tự trong instruction / passage
 function shuffleExam() {
     document.getElementById('status').style.display = 'block';
     document.getElementById('status').textContent = 'Đang xử lý...';
@@ -381,6 +344,7 @@ function shuffleExam() {
                     </div>
                 `;
 
+                // BƯỚC 1: Xây dựng bảng ánh xạ câu hỏi cũ sang câu hỏi mới sau khi xáo trộn phần
                 let globalQNum = 1;
                 let mapOldToNew = {}; 
                 
@@ -393,28 +357,48 @@ function shuffleExam() {
                 
                 if (c === 0) totalQuestions = globalQNum - 1;
 
+                // BƯỚC 2: Duyệt qua từng phần để render nội dung kèm tự động đổi số thứ tự câu trong instruction và passage
                 shuffledSections.forEach(sec => {
-                    let instructionText = sec.instruction.replace(/\{(\d+)\}/g, (match, p1) => {
-                        return mapOldToNew[p1] !== undefined ? mapOldToNew[p1] : match;
-                    });
+                    // Lấy ra dải số câu hỏi mới của phần này trong mã đề hiện tại
+                    let sectionQNums = sec.questions.map(q => mapOldToNew[q.id]);
+                    let startQ = Math.min(...sectionQNums);
+                    let endQ = Math.max(...sectionQNums);
+
+                    // Tự động thay thế {start}, {end} hoặc các định dạng số cũ trong lời chỉ dẫn
+                    let instructionText = sec.instruction
+                        .replace(/\{start\}/gi, startQ)
+                        .replace(/\{end\}/gi, endQ)
+                        .replace(/\{(\d+)\}/g, (match, p1) => {
+                            let mapped = mapOldToNew[parseInt(p1)];
+                            return mapped !== undefined ? mapped : match;
+                        });
                     
                     examHtml += `<p style="font-weight: bold; margin-top: 16pt;">${parseMarkdown(instructionText)}</p>`;
                     
+                    // Tự động thay thế {start}, {end} hoặc các số câu trong đoạn văn (passage)
                     if (sec.passage && sec.passage.trim() !== "") {
-                        let passageText = sec.passage.replace(/\{(\d+)\}/g, (match, p1) => {
-                            return mapOldToNew[p1] !== undefined ? mapOldToNew[p1] : match;
-                        });
+                        let passageText = sec.passage
+                            .replace(/\{start\}/gi, startQ)
+                            .replace(/\{end\}/gi, endQ)
+                            .replace(/\{(\d+)\}/g, (match, p1) => {
+                                let mapped = mapOldToNew[parseInt(p1)];
+                                return mapped !== undefined ? mapped : match;
+                            });
                         examHtml += `<p style="margin-bottom: 12pt; text-align: justify;">${parseMarkdown(passageText)}</p>`;
                     }
 
+                    // Render danh sách câu hỏi
                     sec.questions.forEach(q => {
                         let currentQNumber = mapOldToNew[q.id];
                         let stemText = q.stem.replace(/\{(\d+)\}/g, (match, p1) => {
-                            return mapOldToNew[p1] !== undefined ? mapOldToNew[p1] : match;
+                            let mapped = mapOldToNew[parseInt(p1)];
+                            return mapped !== undefined ? mapped : match;
                         });
+                        
                         let prefix = `<b>Câu ${currentQNumber}:</b> `;
                         examHtml += `<p style="margin: 6pt 0 4pt 0;">${prefix}${parseMarkdown(stemText)}</p>`;
 
+                        // Đảo đáp án A, B, C, D
                         let optionsArr = q.options.map((optText, idx) => {
                             return { text: optText, isCorrect: (idx === q.answer) };
                         });
@@ -437,7 +421,7 @@ function shuffleExam() {
                 generatedExamsHTML += examHtml;
             }
 
-            // Tạo bảng Ma Trận Đáp Án
+            // BƯỚC 3: Tạo bảng Ma Trận Đáp Án
             generatedKeysHTML = `
                 <div style="text-align: center; margin-bottom: 20px;">
                     <p style="margin:0; font-size: 16pt; font-weight: bold;">BẢNG ĐÁP ÁN CÁC MÃ ĐỀ</p>
@@ -477,13 +461,12 @@ function shuffleExam() {
             document.getElementById('downloadArea').style.display = 'block';
 
         } catch (error) {
-            document.getElementById('status').textContent = '❌ Lỗi: Cấu trúc JSON không hợp lệ! Vui lòng kiểm tra lại.';
+            document.getElementById('status').textContent = '❌ Lỗi: Cấu trúc JSON không hợp lệ!';
             console.error(error);
         }
     }, 500); 
 }
 
-// Hàm xuất nội dung HTML sang file Word (.doc) giữ nguyên định dạng gốc
 function exportHTMLToWord(htmlContent, filename) {
     const header = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
