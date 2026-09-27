@@ -1,511 +1,524 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Công Cụ Sinh Đề Thi Bằng AI (Claude & Gemini)</title>
-<!-- Thư viện đọc file Word -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
-<!-- Thư viện xuất file Word (.docx) -->
-<script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
-<style>
-:root{
-  --bg:#f4f6fb;--card:#ffffff;--ink:#1e293b;--mut:#64748b;--line:#e2e8f0;
-  --brand:#8b5cf6;--brand-dark:#7c3aed;--soft:#f5f3ff;--ok:#16a34a;--bad:#dc2626;
-  --gemini:#0ea5e9; --gemini-dark:#0284c7;
-  --fs:15px;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);font-size:var(--fs);line-height:1.6}
-.container{max-width:1000px;margin:30px auto;padding:0 20px}
-.card{background:var(--card);border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,.05);padding:32px;margin-bottom:24px;border:1px solid var(--line)}
-h1{margin:0 0 8px;font-size:24px;color:var(--brand-dark)}
-.form-group{margin-bottom:20px}
-label{display:block;font-weight:600;margin-bottom:8px;font-size:14px}
-input[type=text],input[type=password],textarea{width:100%;padding:12px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:inherit;transition:.2s}
-input:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(139,92,246,.15)}
-textarea{resize:vertical;min-height:200px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;background:var(--brand);color:#fff;border:none;border-radius:10px;font-weight:600;cursor:pointer;transition:.2s;font-size:15px}
-.btn:hover{background:var(--brand-dark)}
-.btn:disabled{opacity:.6;cursor:not-allowed;background:var(--mut)}
-.btn-outline{background:#fff;color:var(--brand);border:1.5px solid var(--brand)}
-.btn-outline:hover{background:var(--soft)}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.file-drop{border:2px dashed var(--brand);background:var(--soft);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:.2s}
-.file-drop:hover{background:#ede9fe}
-.file-drop input{display:none}
-#statusBox{display:none;padding:16px;border-radius:10px;margin-bottom:20px;font-weight:600;text-align:center}
-.status-loading{background:#fef08a;color:#854d0e;border:1px solid #fde047}
-.status-success{background:#dcfce7;color:#166534;border:1px solid #86efac}
-.status-error{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
-.note{font-size:13px;color:var(--mut);background:#f8fafc;padding:12px;border-radius:8px;border:1px solid var(--line);margin-top:8px}
-.divider { display: flex; align-items: center; text-align: center; margin: 30px 0; color: var(--mut); font-weight: 600; font-size: 13px; text-transform: uppercase; }
-.divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--line); }
-.divider:not(:empty)::before { margin-right: 15px; }
-.divider:not(:empty)::after { margin-left: 15px; }
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Phần Mềm Đảo Đề Tiếng Anh (Cấu trúc 2026)</title>
+    <!-- Thư viện Mammoth.js dùng để đọc file .docx trực tiếp trên trình duyệt -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        :root {
+            --brand: #2563eb;
+            --brand-dark: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --mut: #64748b;
+            --ok: #16a34a;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; }
+        .header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0 0 8px; font-size: 24px; }
+        .header p { margin: 0; opacity: 0.9; font-size: 15px; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
+        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+        
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card h2 { margin: 0 0 16px; font-size: 18px; color: var(--brand); border-bottom: 2px solid var(--bg); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        textarea { width: 100%; height: 440px; padding: 16px; border: 1px solid var(--border); border-radius: 8px; font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.5; resize: vertical; background: #f8fafc; color: #334155; }
+        textarea:focus { outline: none; border-color: var(--brand); background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; }
+        
+        .btn { display: flex; align-items: center; justify-content: center; width: 100%; padding: 12px; background: var(--brand); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 12px; }
+        .btn:hover { background: var(--brand-dark); }
+        .btn-success { background: var(--ok); }
+        .btn-success:hover { background: #15803d; }
+        .btn-secondary { background: #475569; }
+        .btn-secondary:hover { background: #334155; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-@media (max-width: 768px) {
-    .grid-2 { grid-template-columns: 1fr; }
-}
-</style>
+        .upload-box { background: #f1f5f9; border: 2px dashed #cbd5e1; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 12px; }
+        .upload-box input[type="file"] { display: none; }
+        .upload-label { font-size: 13px; font-weight: 600; color: var(--brand); cursor: pointer; display: inline-block; }
+        .upload-label:hover { text-decoration: underline; }
+        
+        .instructions { font-size: 13.5px; color: var(--mut); background: #eff6ff; border: 1px solid #bfdbfe; padding: 16px; border-radius: 8px; }
+        .instructions ul { margin: 10px 0 0; padding-left: 20px; }
+        .instructions li { margin-bottom: 6px; }
+        .instructions code { background: #dbeafe; color: #1e3a8a; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+        
+        #status { text-align: center; font-weight: 600; color: var(--ok); margin-top: 10px; display: none; }
+        #parseStatus { font-size: 12px; color: var(--mut); text-align: center; margin-top: 4px; }
+    </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="card" style="background:linear-gradient(135deg, #7c3aed, #0284c7); color:#fff; padding:40px 32px">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
-        <h1 style="color:#fff;font-size:28px">AI Exam Generator (Claude & Gemini)</h1>
-        <button class="btn sm" style="background:rgba(255,255,255,0.2); color:#fff; border:1px solid rgba(255,255,255,0.4);" onclick="resetAllTrials()">🔄 Reset tất cả lượt dùng thử</button>
-    </div>
-    <div style="opacity:0.9;font-size:15px; margin-top:8px;">Hệ thống phân tích đề mẫu và tự động sinh đề tương đương độ khó, đảm bảo chống Hallucinate (Bịa nguồn) và hỗ trợ xuất file Word chuẩn form.</div>
-  </div>
-
-  <div class="card">
-    <div class="form-group">
-      <label>1. Nguồn Đề Thi Mẫu (Bắt buộc)</label>
-      <div class="grid-2">
-        <label class="file-drop" id="dropZone">
-          <div style="font-size:24px;margin-bottom:8px">📁</div>
-          <div>Bấm để chọn file <b>.docx</b> hoặc <b>.txt</b></div>
-          <input type="file" id="inpFile" accept=".docx,.txt" onchange="handleFileSelect(event)">
-        </label>
-        <div style="display:flex;align-items:center;justify-content:center;color:var(--mut);font-weight:600">HOẶC DÁN TRỰC TIẾP DƯỚI ĐÂY</div>
-      </div>
-      <textarea id="inpText" placeholder="Dán nội dung đề mẫu vào đây..." style="margin-top:16px"></textarea>
+    <div class="header">
+        <h1>Phần Mềm Đảo Đề Tiếng Anh (Chuẩn 2026)</h1>
+        <p>Đảo phần, Đảo đáp án, Cố định thứ tự câu trong phần & Tự động cập nhật số câu hỏi trong bài đọc.</p>
     </div>
 
-    <!-- TẠO LỆNH THỦ CÔNG (MIỄN PHÍ) -->
-    <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:12px; padding:24px; margin-bottom:24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:10px;">
-            <h3 style="margin:0; color:#166534;">Công cụ Miễn Phí (Tạo Lệnh Thủ Công)</h3>
-            <span id="freeTrialBadge" style="background:#f59e0b; color:#fff; padding:4px 12px; border-radius:999px; font-size:12.5px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.05)"></span>
+    <div class="grid">
+        <div class="card">
+            <h2>
+                <span>1. Dữ liệu Đề Thi Gốc (Định dạng JSON)</span>
+            </h2>
+            <div class="upload-box">
+                <label class="upload-label" for="docxFile">📂 Tải lên đề thi định dạng Word (.docx) để chuyển đổi sang JSON</label>
+                <input type="file" id="docxFile" accept=".docx" onchange="handleDocxUpload(event)">
+                <div id="parseStatus">Hỗ trợ tự động phân tích cấu trúc đề chuẩn từ file Word.</div>
+            </div>
+            <textarea id="jsonInput" spellcheck="false"></textarea>
         </div>
-        <p style="font-size:14px; color:#15803d; margin-top:0; margin-bottom:16px;">Hệ thống sẽ gộp Đề Mẫu của bạn với các Quy tắc thành một Lệnh chuẩn. Bạn chỉ cần copy và dán vào AI bạn muốn sử dụng.</p>
         
-        <!-- Ô nhập Pass Mở khóa -->
-        <div id="freeUnlockWrap" style="display:none; margin-bottom:16px; padding:16px; background:#fffbeb; border:1px dashed #f59e0b; border-radius:8px;">
-            <label style="color:#b45309; font-weight:bold; margin-bottom:8px; font-size:13.5px;">🔒 Bạn đã dùng hết lượt thử. Vui lòng đăng nhập mật khẩu để dùng tiếp:</label>
-            <div style="display:flex; gap:10px; flex-wrap:wrap">
-                <input type="password" id="inpFreePassword" placeholder="Mật khẩu..." style="flex:1; border-color:#fde047;">
-                <button class="btn" style="background:#ca8a04; color:#fff; border:none;" onclick="unlockFreeMode()">Đăng Nhập</button>
-            </div>
-        </div>
-
-        <div class="grid-2">
-            <button class="btn" id="btnGenClaudeFree" style="background:#16a34a; border-color:#16a34a; font-size:14.5px" onclick="generateFreePrompt('claude')">
-                📋 CÁCH 1: LỆNH CHO CLAUDE
-            </button>
-            <button class="btn" id="btnGenGeminiFree" style="background:#059669; border-color:#059669; font-size:14.5px" onclick="generateFreePrompt('gemini')">
-                📋 CÁCH 3: LỆNH CHO GEMINI
-            </button>
-        </div>
-    </div>
-
-    <div class="divider">Chạy Tự Động Bằng API (Yêu cầu API Key)</div>
-
-    <!-- TẠO ĐỀ TỰ ĐỘNG BẰNG API -->
-    <div style="background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:24px; margin-bottom:24px;">
-        <h3 style="margin-top:0; color:var(--ink); margin-bottom:16px;">Công cụ Tự Động (Tài khoản API)</h3>
-        
-        <div class="grid-2">
-            <!-- CÁCH 2: CLAUDE API -->
-            <div style="background:#fff; border:1px solid var(--line); padding:16px; border-radius:10px;">
-                <label>🔑 API Key Claude (Anthropic)</label>
-                <input type="password" id="inpClaudeKey" placeholder="sk-ant-api03-..." style="margin-bottom:12px">
-                <button class="btn" id="btnGenClaudeAPI" style="width:100%; background:var(--brand); font-size:14px" onclick="generateAPI('claude')">
-                    🚀 CÁCH 2: CLAUDE API
-                </button>
+        <div>
+            <div class="card" style="margin-bottom: 24px;">
+                <h2>2. Cấu hình Đảo đề</h2>
+                <div class="form-group">
+                    <label>Số lượng mã đề cần tạo (Max: 24)</label>
+                    <input type="number" id="numCodes" min="1" max="24" value="4">
+                </div>
+                <div class="form-group">
+                    <label>Mã đề bắt đầu (Vd: 101)</label>
+                    <input type="number" id="startCode" value="101">
+                </div>
+                
+                <button class="btn" id="btnShuffle" onclick="shuffleExam()">🎲 TIẾN HÀNH ĐẢO ĐỀ</button>
+                <div id="status">✅ Đã đảo xong! Đang xuất file...</div>
+                
+                <div id="downloadArea" style="display: none; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+                    <button class="btn btn-success" onclick="downloadExams()">📄 TẢI XUỐNG ĐỀ THI (WORD)</button>
+                    <button class="btn btn-success" onclick="downloadKeys()">🔑 TẢI BẢNG ĐÁP ÁN (WORD)</button>
+                </div>
             </div>
 
-            <!-- CÁCH 4: GEMINI API -->
-            <div style="background:#fff; border:1px solid var(--line); padding:16px; border-radius:10px;">
-                <label>🔑 API Key Gemini (Google)</label>
-                <input type="password" id="inpGeminiKey" placeholder="AIzaSy..." style="margin-bottom:12px">
-                <button class="btn" id="btnGenGeminiAPI" style="width:100%; background:var(--gemini); font-size:14px" onclick="generateAPI('gemini')">
-                    🚀 CÁCH 4: GEMINI API
-                </button>
+            <div class="instructions">
+                <b>Hướng dẫn sử dụng:</b>
+                <ul>
+                    <li>Bạn có thể bấm chọn file <code>.docx</code> gốc để hệ thống tự phân tích và sinh mã JSON vào ô bên cạnh.</li>
+                    <li>Trong phần <code>instruction</code> hoặc <code>passage</code>, hãy dùng cú pháp <code>{số_câu}</code> (ví dụ: <code>{15}</code>). Khi đảo đề, hệ thống sẽ tự động tìm và đổi số đó thành số thứ tự câu hỏi mới tương ứng.</li>
+                    <li>Hệ thống tự động căn chỉnh trình bày và độ dài các phương án giống hệt bản gốc khi xuất ra file Word.</li>
+                </ul>
             </div>
         </div>
     </div>
-
-  </div>
-
-  <div id="statusBox"></div>
-
-  <!-- VÙNG KẾT QUẢ VÀ XUẤT FILE ĐỀ THI -->
-  <div class="card" id="outputWrap">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-      <h2 style="margin:0;color:var(--ok);font-size:20px;">✅ Kết Quả & Xuất File</h2>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-outline sm" onclick="copyResult()">📋 Copy Tất Cả</button>
-        <button class="btn primary sm" onclick="downloadResult()">💾 Tải File Text</button>
-        <button class="btn sm" style="background:#2563eb;color:#fff;border:none" onclick="downloadDocx()">📄 Tải File Word (.docx)</button>
-      </div>
-    </div>
-    
-    <div style="font-size:13.5px;color:var(--mut);margin-bottom:12px;background:#f8fafc;padding:12px;border-radius:8px;border:1px dashed var(--line)">
-        <i>* Nếu dùng <b>Cách 1</b> hoặc <b>Cách 3</b>: Bạn hãy dán kết quả từ Claude/Gemini vào ô dưới đây rồi bấm "Tải File Word (.docx)".<br>
-        * Nếu dùng <b>Cách 2</b> hoặc <b>Cách 4</b>: Kết quả sẽ tự động hiện ra ở đây.</i>
-    </div>
-    
-    <textarea id="outText" placeholder="Kết quả tạo đề sẽ hiện ở đây, hoặc bạn dán kết quả thủ công vào đây..." style="min-height:500px;font-family:'Times New Roman',serif;font-size:16px"></textarea>
-  </div>
 </div>
 
 <script>
-// ==========================================
-// CẤU HÌNH VÀ SYSTEM PROMPT
-// ==========================================
-const MAX_FREE_TRIALS = 1;
-const VALID_FREE_PASSWORD = "phamtien17081983@";
-
-const SYSTEM_PROMPT = `Bạn là một chuyên gia khảo thí và biên soạn đề thi Tiếng Anh cấp cao. 
-Nhiệm vụ của bạn là phân tích "ĐỀ MẪU" do người dùng cung cấp và biên soạn ra một "ĐỀ THI MỚI" tuân thủ NGHIÊM NGẶT 100% các quy tắc sau:
-
-[PHẦN I: ĐỀ THI TRẮC NGHIỆM]
-Tuyệt đối chỉ in ra nội dung đề thi trong phần này. KHÔNG kèm theo đáp án, KHÔNG giải thích sau câu hỏi.
-1. CẤU TRÚC VÀ MỨC ĐỘ:
-- Tương đương độ khó, độ dài và số lượng từ của từng bài trong đề mẫu.
-- Khác hoàn toàn về nội dung, nhưng giữ nguyên thứ tự các phần/cấu trúc.
-- Phân bổ đáp án: Dàn đều phương án đúng (A, B, C, D mỗi loại chiếm khoảng 25%).
-
-2. ĐỊNH DẠNG PHƯƠNG ÁN TRẢ LỜI:
-- Phương án ngắn (1-2 từ): Nằm trên cùng 1 hàng, cách nhau bằng Tab đều đặn. (A. __ \t B. __ \t C. __ \t D. __)
-- Phương án trung bình/dài: Sắp xếp thành 2 hàng (2 phương án/hàng) cách nhau đều đặn.
-
-3. RÀNG BUỘC BÀI ĐỌC (KHÔNG TỰ BỊA / NO HALLUCINATE):
-- Bắt buộc lấy và điều chỉnh (adapted from) từ các nguồn tiếng Anh uy tín có thật (BBC, CNN, National Geographic, giáo trình...). Ưu tiên chủ đề sách giáo khoa.
-- Độ dài: Đọc điền từ (khoảng 100-150 từ/bài); Đọc hiểu (khoảng 300-400 từ/bài).
-- Trích dẫn: Ghi rõ nguồn trong ngoặc đơn nghiêng ngay sau khi kết thúc văn bản bài đọc. Ví dụ: (Adapted from [Nguồn])
-- Tuân thủ chính xác các dạng câu hỏi của bài đọc mẫu.
-
-4. ĐỊNH DẠNG CÂU HỎI VÀ ĐOẠN VĂN ĐỌC HIỂU:
-- Bắt buộc dùng Markdown in đậm (ví dụ: **word**) trực tiếp vào đoạn văn đọc hiểu đối với:
-  + Từ vựng được hỏi đồng nghĩa/trái nghĩa.
-  + Đại từ tham chiếu được hỏi.
-  + Các từ, cụm từ được hỏi nằm trong câu hỏi.
-  + Toàn bộ câu/mệnh đề được hỏi ý chính/paraphrase.
-- TRONG NỘI DUNG CÂU HỎI: Phải dùng Markdown in đậm (**word**) cho từ/cụm từ được trích dẫn để hỏi. Ví dụ: The word "**XYZ**" in paragraph 1 is closest in meaning to...
-- Định dạng 4 phương án cho câu đọc hiểu: Phải có độ dài tương đương nhau (chênh lệch tối đa 3-4 từ), viết thành câu hoàn chỉnh nếu hỏi về nội dung.
-
----
-[PHẦN II: ĐÁP ÁN VÀ GIẢI THÍCH CHI TIẾT]
-Phần này phải được đặt tách biệt hoàn toàn ở cuối cùng, sau khi kết thúc toàn bộ Đề thi.
-Cấu trúc phần này:
-- Bảng đáp án ngắn gọn (ví dụ: 1A, 2B, 3C...)
-- Giải thích chi tiết cho từng câu (Tại sao đúng, tại sao sai, dịch nghĩa nếu cần).`;
-
-// ==========================================
-// KIỂM TRA TRẠNG THÁI DÙNG THỬ (CÁCH 1 & 3)
-// ==========================================
-function checkLicenseStatus() {
-    const isFreeActivated = localStorage.getItem('ai_free_activated') === 'true';
-    const freeTrialCount = parseInt(localStorage.getItem('ai_free_trials') || '0');
-    
-    const badgeFree = document.getElementById('freeTrialBadge');
-    const unlockWrapFree = document.getElementById('freeUnlockWrap');
-    const btnGenC = document.getElementById('btnGenClaudeFree');
-    const btnGenG = document.getElementById('btnGenGeminiFree');
-
-    if (isFreeActivated) {
-        badgeFree.style.background = '#16a34a';
-        badgeFree.textContent = '✓ Đã mở khóa đăng nhập';
-        unlockWrapFree.style.display = 'none';
-        btnGenC.disabled = false;
-        btnGenG.disabled = false;
-        btnGenC.innerHTML = "📋 CÁCH 1: LỆNH CHO CLAUDE";
-        btnGenG.innerHTML = "📋 CÁCH 3: LỆNH CHO GEMINI";
-    } else {
-        const remainingFree = MAX_FREE_TRIALS - freeTrialCount;
-        if (remainingFree > 0) {
-            badgeFree.style.background = '#f59e0b';
-            badgeFree.textContent = `Dùng thử: ${remainingFree}/${MAX_FREE_TRIALS} lần`;
-            unlockWrapFree.style.display = 'none';
-            btnGenC.disabled = false;
-            btnGenG.disabled = false;
-        } else {
-            badgeFree.style.background = '#dc2626';
-            badgeFree.textContent = `Đã hết lượt dùng thử`;
-            unlockWrapFree.style.display = 'block';
-            btnGenC.disabled = true;
-            btnGenG.disabled = true;
-            btnGenC.innerHTML = "🔒 ĐÃ KHÓA CÁCH 1";
-            btnGenG.innerHTML = "🔒 ĐÃ KHÓA CÁCH 3";
-        }
+// Dữ liệu mẫu (JSON) cho Đề Tiếng Anh mặc định ban đầu
+const defaultJSON = {
+  "header": {
+    "school": "SỞ GIÁO DỤC VÀ ĐÀO TẠO",
+    "examName": "KỲ THI TỐT NGHIỆP THPT NĂM 2026",
+    "subject": "Môn thi: TIẾNG ANH",
+    "time": "Thời gian làm bài: 50 phút"
+  },
+  "sections": [
+    {
+      "id": "s1",
+      "instruction": "Mark the letter A, B, C, or D on your answer sheet to indicate the word whose underlined part differs from the other three in pronunciation in each of the following questions.",
+      "passage": "",
+      "questions": [
+        { "id": 1, "stem": "", "options": ["n**a**tion", "c**a**ve", "h**a**t", "f**a**ce"], "answer": 2 },
+        { "id": 2, "stem": "", "options": ["stopp**ed**", "look**ed**", "laugh**ed**", "provid**ed**"], "answer": 3 }
+      ]
+    },
+    {
+      "id": "s2",
+      "instruction": "Mark the letter A, B, C, or D on your answer sheet to indicate the correct answer to each of the following questions.",
+      "passage": "",
+      "questions": [
+        { "id": 3, "stem": "They have been learning English ______ 2010.", "options": ["in", "since", "for", "from"], "answer": 1 },
+        { "id": 4, "stem": "The more you study, ______ you will become.", "options": ["the smartest", "smarter", "the smarter", "smartest"], "answer": 2 }
+      ]
+    },
+    {
+      "id": "s3",
+      "instruction": "Read the following passage and mark the letter A, B, C, or D on your answer sheet to indicate the correct word or phrase that best fits each of the numbered blanks from {5} to {7}.",
+      "passage": "Technology has advanced rapidly in recent years. Many people believe that computers will (5) ______ humans in various jobs. Furthermore, the internet has made it easier to (6) ______ with people across the globe. However, this also brings some risks such as (7) ______ issues.",
+      "questions": [
+        { "id": 5, "stem": "", "options": ["replace", "change", "transform", "alter"], "answer": 0 },
+        { "id": 6, "stem": "", "options": ["contact", "connect", "communicate", "call"], "answer": 2 },
+        { "id": 7, "stem": "", "options": ["private", "privacy", "privately", "privatize"], "answer": 1 }
+      ]
+    },
+    {
+      "id": "s4",
+      "instruction": "Read the following passage and mark the letter A, B, C, or D on your answer sheet to indicate the correct answer to each of the questions from {8} to {10}.",
+      "passage": "Global warming is a serious problem. It causes sea levels to rise and weather patterns to change. Scientists warn that if we do not reduce carbon emissions, the consequences will be catastrophic. Many countries are now investing in renewable energy sources like wind and solar power.",
+      "questions": [
+        { "id": 8, "stem": "What is the main idea of the passage?", "options": ["The benefits of renewable energy.", "The dangers of global warming and the need for action.", "How to measure carbon emissions.", "The history of weather patterns."], "answer": 1 },
+        { "id": 9, "stem": "The word 'catastrophic' is closest in meaning to ______.", "options": ["beneficial", "disastrous", "minor", "predictable"], "answer": 1 },
+        { "id": 10, "stem": "According to the passage, what are countries doing to help?", "options": ["Building higher walls against sea levels.", "Reducing the use of wind power.", "Investing in renewable energy.", "Ignoring the scientists' warnings."], "answer": 2 }
+      ]
     }
-}
-
-function resetAllTrials() {
-    if(confirm("Bạn có chắc chắn muốn làm mới (Reset) lại toàn bộ lượt dùng thử?")) {
-        localStorage.setItem('ai_free_trials', '0');
-        localStorage.removeItem('ai_free_activated'); 
-        checkLicenseStatus();
-        alert("🔄 Đã làm mới số lượt dùng thử về 0 thành công!");
-    }
-}
-
-function unlockFreeMode() {
-    const pwd = document.getElementById('inpFreePassword').value;
-    if (pwd === VALID_FREE_PASSWORD) {
-        localStorage.setItem('ai_free_activated', 'true');
-        alert("🎉 Đăng nhập thành công! Đã mở khóa tính năng Tạo Lệnh Miễn Phí vĩnh viễn.");
-        checkLicenseStatus();
-        document.getElementById('inpFreePassword').value = '';
-    } else {
-        alert("❌ Mật khẩu không chính xác!");
-    }
-}
-
-window.onload = () => {
-    checkLicenseStatus();
-    document.getElementById('outputWrap').style.display = 'block';
-    
-    const savedC = localStorage.getItem('claude_api_key');
-    const savedG = localStorage.getItem('gemini_api_key');
-    if(savedC) document.getElementById('inpClaudeKey').value = savedC;
-    if(savedG) document.getElementById('inpGeminiKey').value = savedG;
+  ]
 };
 
-// ==========================================
-// XỬ LÝ ĐỌC FILE (DOCX, TXT)
-// ==========================================
-function handleFileSelect(event) {
+// Khởi tạo giá trị mặc định cho textarea
+document.getElementById('jsonInput').value = JSON.stringify(defaultJSON, null, 2);
+
+let generatedExamsHTML = "";
+let generatedKeysHTML = "";
+
+// Thuật toán xáo trộn mảng Fisher-Yates
+function shuffleArray(array) {
+    let arr = array.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+// Chuyển Markdown In đậm (**) thành thẻ <b>
+function parseMarkdown(text) {
+    if (!text) return "";
+    return text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+}
+
+// Xác định định dạng cột (4 cột, 2 cột, 1 cột) dựa trên độ dài đáp án
+function getOptionsLayoutHTML(options) {
+    let maxLen = Math.max(...options.map(o => (o.text || "").length));
+    const letters = ["A", "B", "C", "D"];
+    let html = `<table style="width:100%; border-collapse: collapse; border: none; margin-bottom: 6pt;">`;
+    
+    if (maxLen < 25) {
+        html += `<tr>`;
+        for(let i=0; i<4; i++){
+            html += `<td style="width:25%; border:none; padding:2px 0; vertical-align:top;"><b>${letters[i]}.</b> ${parseMarkdown(options[i].text)}</td>`;
+        }
+        html += `</tr>`;
+    } else if (maxLen < 60) {
+        html += `<tr>
+                    <td style="width:50%; border:none; padding:2px 0; vertical-align:top;"><b>A.</b> ${parseMarkdown(options[0].text)}</td>
+                    <td style="width:50%; border:none; padding:2px 0; vertical-align:top;"><b>B.</b> ${parseMarkdown(options[1].text)}</td>
+                 </tr>
+                 <tr>
+                    <td style="width:50%; border:none; padding:2px 0; vertical-align:top;"><b>C.</b> ${parseMarkdown(options[2].text)}</td>
+                    <td style="width:50%; border:none; padding:2px 0; vertical-align:top;"><b>D.</b> ${parseMarkdown(options[3].text)}</td>
+                 </tr>`;
+    } else {
+        for(let i=0; i<4; i++){
+            html += `<tr><td style="border:none; padding:2px 0; vertical-align:top;"><b>${letters[i]}.</b> ${parseMarkdown(options[i].text)}</td></tr>`;
+        }
+    }
+    html += `</table>`;
+    return html;
+}
+
+// TÍNH NĂNG MỚI: Đọc file Word (.docx) và tự động trích xuất cấu trúc sang JSON chuẩn
+function handleDocxUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-    
-    const ext = file.name.split('.').pop().toLowerCase();
-    
-    if (ext === 'txt') {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.getElementById('inpText').value = e.target.result;
-            showStatus("Đã tải xong file .txt", "success");
-        };
-        reader.readAsText(file);
-    } else if (ext === 'docx') {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            mammoth.extractRawText({arrayBuffer: e.target.result})
-                .then(result => {
-                    document.getElementById('inpText').value = result.value;
-                    showStatus("Đã trích xuất văn bản từ file Word thành công!", "success");
-                })
-                .catch(err => showStatus("Lỗi đọc file DOCX: " + err.message, "error"));
-        };
-        reader.readAsArrayBuffer(file);
-    } else {
-        showStatus("Chỉ hỗ trợ file .txt hoặc .docx", "error");
-    }
-    event.target.value = ''; 
-}
 
-function showStatus(msg, type) {
-    const box = document.getElementById('statusBox');
-    box.style.display = 'block';
-    box.className = `status-${type}`;
-    box.textContent = msg;
-}
+    const statusEl = document.getElementById('parseStatus');
+    statusEl.textContent = "Đang đọc và phân tích tệp Word...";
 
-// ==========================================
-// CÁCH 1 & CÁCH 3: TẠO PROMPT COPY
-// ==========================================
-function generateFreePrompt(aiType) {
-    const isActivated = localStorage.getItem('ai_free_activated') === 'true';
-    let trialCount = parseInt(localStorage.getItem('ai_free_trials') || '0');
-
-    if (!isActivated && trialCount >= MAX_FREE_TRIALS) {
-        checkLicenseStatus();
-        return;
-    }
-
-    const inputText = document.getElementById('inpText').value.trim();
-    if(!inputText) return alert("Vui lòng dán nội dung đề mẫu hoặc tải file lên trước!");
-
-    const finalPrompt = `${SYSTEM_PROMPT}\n\n=== DƯỚI ĐÂY LÀ ĐỀ MẪU CỦA TÔI ===\n\n${inputText}`;
-    
-    const tempTextArea = document.createElement("textarea");
-    tempTextArea.value = finalPrompt;
-    document.body.appendChild(tempTextArea);
-    tempTextArea.select();
-    document.execCommand("copy");
-    document.body.removeChild(tempTextArea);
-
-    if (!isActivated) {
-        trialCount++;
-        localStorage.setItem('ai_free_trials', trialCount.toString());
-        checkLicenseStatus();
-    }
-
-    if (aiType === 'claude') {
-        alert("🎉 THÀNH CÔNG! Đã copy Lệnh vào bộ nhớ tạm.\n\nHệ thống sẽ mở trang Claude. Hãy DÁN lệnh này vào ô chat nhé!");
-        window.open("https://claude.ai/new", "_blank");
-    } else if (aiType === 'gemini') {
-        alert("🎉 THÀNH CÔNG! Đã copy Lệnh vào bộ nhớ tạm.\n\nHệ thống sẽ mở trang Gemini. Hãy DÁN lệnh này vào ô chat nhé!");
-        window.open("https://gemini.google.com/app", "_blank");
-    }
-}
-
-// ==========================================
-// CÁCH 2 & CÁCH 4: CHẠY API TỰ ĐỘNG
-// ==========================================
-async function generateAPI(aiType) {
-    const inputText = document.getElementById('inpText').value.trim();
-    if(!inputText) return alert("Vui lòng dán nội dung đề mẫu hoặc tải file lên!");
-
-    const btnClaude = document.getElementById('btnGenClaudeAPI');
-    const btnGemini = document.getElementById('btnGenGeminiAPI');
-
-    showStatus("Đang phân tích đề mẫu và sinh đề mới qua API. Vui lòng không đóng trình duyệt...", "loading");
-
-    try {
-        if (aiType === 'claude') {
-            const apiKey = document.getElementById('inpClaudeKey').value.trim();
-            if(!apiKey) return alert("Vui lòng nhập API Key của Claude!");
-            localStorage.setItem('claude_api_key', apiKey);
-            
-            btnClaude.disabled = true;
-            btnClaude.innerHTML = "⏳ Đang xử lý...";
-            
-            const targetUrl = 'https://api.anthropic.com/v1/messages';
-            const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
-
-            const response = await fetch(proxyUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': apiKey,
-                    'anthropic-version': '2023-06-01',
-                    'anthropic-dangerously-allow-browser': 'true'
-                },
-                body: JSON.stringify({
-                    model: 'claude-3-5-sonnet-20241022',
-                    max_tokens: 8192, 
-                    temperature: 0.4, 
-                    system: SYSTEM_PROMPT,
-                    messages: [
-                        { role: 'user', content: `Dưới đây là ĐỀ MẪU. Hãy dựa vào đây để biên soạn đề thi mới:\n\n<sample_exam>\n${inputText}\n</sample_exam>` }
-                    ]
-                })
+    const reader = new FileReader();
+    reader.onload = function(loadEvent) {
+        const arrayBuffer = loadEvent.target.result;
+        mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+            .then(function(result) {
+                let text = result.value;
+                let parsedJSON = parseTextToExamJSON(text);
+                document.getElementById('jsonInput').value = JSON.stringify(parsedJSON, null, 2);
+                statusEl.textContent = "✅ Chuyển đổi file .docx sang JSON thành công!";
+            })
+            .catch(function(err) {
+                console.error(err);
+                statusEl.textContent = "❌ Lỗi đọc file Word. Vui lòng thử lại!";
             });
+    };
+    reader.readAsArrayBuffer(file);
+}
 
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error?.message || `Lỗi HTTP: ${response.status}`);
+// Hàm thông minh phân tích văn bản thô từ Word để tạo cấu trúc JSON đúng định dạng phần mềm
+function parseTextToExamJSON(rawText) {
+    let lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    
+    let examObj = {
+        "header": {
+            "school": "BỘ GIÁO DỤC VÀ ĐÀO TẠO",
+            "examName": "KỲ THI TỐT NGHIỆP TRUNG HỌC PHỔ THÔNG NĂM 2026",
+            "subject": "Môn thi: TIẾNG ANH",
+            "time": "Thời gian làm bài: 50 phút"
+        },
+        "sections": []
+    };
+
+    let currentSection = {
+        "id": "s1",
+        "instruction": "Mark the letter A, B, C or D on your answer sheet to indicate the option that best fits each of the numbered blanks.",
+        "passage": "",
+        "questions": []
+    };
+
+    let qIdCounter = 1;
+    let currentPassageLines = [];
+    let collectingPassage = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+
+        // Nhận diện dòng Instruction (thường bắt đầu bằng Read, Mark, Choosen...)
+        if (line.toLowerCase().startsWith("read the") || line.toLowerCase().startsWith("mark the letter") || line.toLowerCase().startsWith("choosing")) {
+            if (currentSection.questions.length > 0 || currentSection.passage) {
+                if (currentPassageLines.length > 0) {
+                    currentSection.passage = currentPassageLines.join("\n");
+                    currentPassageLines = [];
+                }
+                examObj.sections.push(currentSection);
+                currentSection = {
+                    "id": "s" + (examObj.sections.length + 1),
+                    "instruction": line,
+                    "passage": "",
+                    "questions": []
+                };
+            } else {
+                currentSection.instruction = line;
             }
-
-            const data = await response.json();
-            document.getElementById('outText').value = data.content[0].text;
-
-        } else if (aiType === 'gemini') {
-            const apiKey = document.getElementById('inpGeminiKey').value.trim();
-            if(!apiKey) return alert("Vui lòng nhập API Key của Gemini!");
-            localStorage.setItem('gemini_api_key', apiKey);
-
-            btnGemini.disabled = true;
-            btnGemini.innerHTML = "⏳ Đang xử lý...";
-
-            // SỬA LỖI MODEL GEMINI API Ở ĐÂY
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-                    contents: [{ parts: [{ text: `Dưới đây là ĐỀ MẪU. Hãy dựa vào đây để biên soạn đề thi mới:\n\n<sample_exam>\n${inputText}\n</sample_exam>` }] }],
-                    generationConfig: { temperature: 0.4 }
-                })
-            });
-
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error?.message || `Lỗi HTTP: ${response.status}`);
-            }
-
-            const data = await response.json();
-            document.getElementById('outText').value = data.candidates[0].content.parts[0].text;
+            collectingPassage = true;
+            continue;
         }
 
-        showStatus("Hoàn tất! Đề thi tự động đã được tạo thành công.", "success");
-        document.getElementById('outputWrap').scrollIntoView({ behavior: 'smooth' });
+        // Nhận diện câu hỏi trắc nghiệm thông thường (Ví dụ: Question 1. hoặc 1. A...)
+        let qMatch = line.match(/^(?:Question\s*(\d+)[\.:]?|\b(\d+)\.)\s*(.*)/i);
+        if (qMatch) {
+            if (collectingPassage && currentPassageLines.length > 0) {
+                currentSection.passage = currentPassageLines.join("\n");
+                currentPassageLines = [];
+                collectingPassage = false;
+            }
 
-    } catch (error) {
-        console.error(error);
-        showStatus("Lỗi: " + error.message, "error");
-    } finally {
-        btnClaude.disabled = false;
-        btnClaude.innerHTML = "🚀 CÁCH 2: CLAUDE API";
-        btnGemini.disabled = false;
-        btnGemini.innerHTML = "🚀 CÁCH 4: GEMINI API";
+            let stemText = qMatch[3] || "";
+            let options = ["Option A", "Option B", "Option C", "Option D"];
+            let answerIdx = 0;
+
+            // Kiểm tra xem các đáp án A, B, C, D có nằm cùng dòng hay dòng tiếp theo
+            let inlineOpts = stemText.match(/(?:[A-D]\.|\b[A-D]\))\s*([^A-D\t]+)/g);
+            if (inlineOpts && inlineOpts.length >= 2) {
+                // Tách các đáp án trên cùng dòng
+                options = inlineOpts.map(opt => opt.replace(/^[A-D][\.\)]\s*/, "").trim());
+                stemText = stemText.replace(/(?:[A-D]\.|\b[A-D]\))\s*[^A-D\t]+/g, "").trim();
+            } else if (i + 4 < lines.length && /^[A-D][\.\)]/.test(lines[i+1])) {
+                // Các đáp án nằm ở 4 dòng kế tiếp
+                options = [
+                    lines[i+1].replace(/^[A-D][\.\)]\s*/, ""),
+                    lines[i+2].replace(/^[A-D][\.\)]\s*/, ""),
+                    lines[i+3].replace(/^[A-D][\.\)]\s*/, ""),
+                    lines[i+4].replace(/^[A-D][\.\)]\s*/, "")
+                ];
+                i += 4;
+            }
+
+            currentSection.questions.push({
+                "id": qIdCounter++,
+                "stem": stemText,
+                "options": options,
+                "answer": answerIdx
+            });
+        } else if (collectingPassage) {
+            currentPassageLines.push(line);
+        }
     }
+
+    if (currentPassageLines.length > 0 && !currentSection.passage) {
+        currentSection.passage = currentPassageLines.join("\n");
+    }
+
+    if (currentSection.questions.length > 0) {
+        examObj.sections.push(currentSection);
+    }
+
+    // Nếu file Word trống hoặc không bóc tách được, trả về mặc định mẫu chuẩn để phần mềm không bị lỗi
+    if (examObj.sections.length === 0) {
+        return defaultJSON;
+    }
+
+    return examObj;
 }
 
-// ==========================================
-// XUẤT FILE VÀ COPY
-// ==========================================
-function copyResult() {
-    const text = document.getElementById('outText');
-    if (!text.value.trim()) return alert('Chưa có nội dung đề thi!');
-    text.select();
-    document.execCommand('copy');
-    alert('Đã copy toàn bộ nội dung đề thi vào bộ nhớ tạm!');
+// Hàm chính: Đảo đề
+function shuffleExam() {
+    document.getElementById('status').style.display = 'block';
+    document.getElementById('status').textContent = 'Đang xử lý...';
+    document.getElementById('downloadArea').style.display = 'none';
+
+    setTimeout(() => {
+        try {
+            const rawJSON = document.getElementById('jsonInput').value;
+            const examData = JSON.parse(rawJSON);
+            let numCodes = parseInt(document.getElementById('numCodes').value);
+            let startCode = parseInt(document.getElementById('startCode').value);
+            
+            if (numCodes > 24) numCodes = 24;
+            
+            generatedExamsHTML = "";
+            let answerMatrix = {}; 
+            let totalQuestions = 0;
+
+            for (let c = 0; c < numCodes; c++) {
+                let currentCode = startCode + c;
+                let shuffledSections = shuffleArray(examData.sections);
+                
+                let examHtml = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <p style="margin:0; font-size: 14pt;">${examData.header.school}</p>
+                        <p style="margin:0; font-size: 14pt; font-weight: bold;">${examData.header.examName}</p>
+                        <p style="margin:0; font-size: 12pt;">${examData.header.subject}</p>
+                        <p style="margin:0; font-size: 12pt;">${examData.header.time}</p>
+                        <p style="margin:10px 0 0 0; font-size: 12pt; font-weight: bold; text-align:right;">Mã đề thi: ${currentCode}</p>
+                    </div>
+                `;
+
+                let globalQNum = 1;
+                let mapOldToNew = {}; 
+                
+                shuffledSections.forEach(sec => {
+                    sec.questions.forEach(q => {
+                        mapOldToNew[q.id] = globalQNum;
+                        globalQNum++;
+                    });
+                });
+                
+                if (c === 0) totalQuestions = globalQNum - 1;
+
+                shuffledSections.forEach(sec => {
+                    let instructionText = sec.instruction.replace(/\{(\d+)\}/g, (match, p1) => {
+                        return mapOldToNew[p1] !== undefined ? mapOldToNew[p1] : match;
+                    });
+                    
+                    examHtml += `<p style="font-weight: bold; margin-top: 16pt;">${parseMarkdown(instructionText)}</p>`;
+                    
+                    if (sec.passage && sec.passage.trim() !== "") {
+                        let passageText = sec.passage.replace(/\{(\d+)\}/g, (match, p1) => {
+                            return mapOldToNew[p1] !== undefined ? mapOldToNew[p1] : match;
+                        });
+                        examHtml += `<p style="margin-bottom: 12pt; text-align: justify;">${parseMarkdown(passageText)}</p>`;
+                    }
+
+                    sec.questions.forEach(q => {
+                        let currentQNumber = mapOldToNew[q.id];
+                        let stemText = q.stem.replace(/\{(\d+)\}/g, (match, p1) => {
+                            return mapOldToNew[p1] !== undefined ? mapOldToNew[p1] : match;
+                        });
+                        let prefix = `<b>Câu ${currentQNumber}:</b> `;
+                        examHtml += `<p style="margin: 6pt 0 4pt 0;">${prefix}${parseMarkdown(stemText)}</p>`;
+
+                        let optionsArr = q.options.map((optText, idx) => {
+                            return { text: optText, isCorrect: (idx === q.answer) };
+                        });
+                        let shuffledOptions = shuffleArray(optionsArr);
+                        
+                        let correctIndex = shuffledOptions.findIndex(o => o.isCorrect);
+                        let letter = String.fromCharCode(65 + correctIndex); 
+                        
+                        if (!answerMatrix[currentQNumber]) answerMatrix[currentQNumber] = {};
+                        answerMatrix[currentQNumber][currentCode] = letter;
+
+                        examHtml += getOptionsLayoutHTML(shuffledOptions);
+                    });
+                });
+
+                if (c < numCodes - 1) {
+                    examHtml += `<br clear="all" style="page-break-before:always" />`;
+                }
+                
+                generatedExamsHTML += examHtml;
+            }
+
+            // Tạo bảng Ma Trận Đáp Án
+            generatedKeysHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <p style="margin:0; font-size: 16pt; font-weight: bold;">BẢNG ĐÁP ÁN CÁC MÃ ĐỀ</p>
+                </div>
+            `;
+            
+            let maxCols = 12;
+            let totalTables = Math.ceil(numCodes / maxCols);
+            let codesArr = Array.from({length: numCodes}, (_, i) => startCode + i);
+
+            for (let t = 0; t < totalTables; t++) {
+                let chunkCodes = codesArr.slice(t * maxCols, (t + 1) * maxCols);
+                
+                generatedKeysHTML += `<table style="width:100%; border-collapse: collapse; margin-bottom: 30px; text-align: center;">`;
+                generatedKeysHTML += `<tr><th style="border: 1px solid black; padding: 6px; background-color: #f2f2f2;">Câu \\ Mã</th>`;
+                chunkCodes.forEach(code => {
+                    generatedKeysHTML += `<th style="border: 1px solid black; padding: 6px; background-color: #f2f2f2;">${code}</th>`;
+                });
+                generatedKeysHTML += `</tr>`;
+                
+                for (let q = 1; q <= totalQuestions; q++) {
+                    generatedKeysHTML += `<tr><td style="border: 1px solid black; padding: 6px; font-weight: bold;">${q}</td>`;
+                    chunkCodes.forEach(code => {
+                        let ans = answerMatrix[q] && answerMatrix[q][code] ? answerMatrix[q][code] : "-";
+                        generatedKeysHTML += `<td style="border: 1px solid black; padding: 6px;">${ans}</td>`;
+                    });
+                    generatedKeysHTML += `</tr>`;
+                }
+                generatedKeysHTML += `</table>`;
+                
+                if (t < totalTables - 1) {
+                     generatedKeysHTML += `<br clear="all" style="page-break-before:always" />`;
+                }
+            }
+
+            document.getElementById('status').textContent = '✅ Đảo đề thành công! Mời tải file bên dưới.';
+            document.getElementById('downloadArea').style.display = 'block';
+
+        } catch (error) {
+            document.getElementById('status').textContent = '❌ Lỗi: Cấu trúc JSON không hợp lệ! Vui lòng kiểm tra lại.';
+            console.error(error);
+        }
+    }, 500); 
 }
 
-function downloadResult() {
-    const text = document.getElementById('outText').value;
-    if (!text.trim()) return alert('Chưa có nội dung đề thi!');
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+// Hàm xuất nội dung HTML sang file Word (.doc) giữ nguyên định dạng gốc
+function exportHTMLToWord(htmlContent, filename) {
+    const header = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+            <meta charset='utf-8'>
+            <title>${filename}</title>
+            <style>
+                body { font-family: 'Times New Roman', serif; font-size: 13pt; }
+                p { margin: 0 0 6pt 0; }
+                table { border-collapse: collapse; }
+                td, th { vertical-align: top; }
+            </style>
+        </head>
+        <body>
+    `;
+    const footer = "</body></html>";
+    const sourceHTML = header + htmlContent + footer;
+    
+    const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = `De_Thi_AI_${new Date().getTime()}.txt`;
+    link.download = filename + '.doc';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 }
 
-// Hàm xuất file Word DOCX sử dụng thư viện docx.js (Hỗ trợ in đậm Markdown)
-function downloadDocx() {
-    if (!window.docx) {
-        alert("Thư viện xuất file Word chưa tải xong. Vui lòng kiểm tra kết nối mạng!");
-        return;
-    }
-    
-    const text = document.getElementById('outText').value;
-    if (!text.trim()) { 
-        alert("Vui lòng có nội dung trong ô kết quả trước khi tải file Word!"); 
-        return; 
-    }
+function downloadExams() {
+    exportHTMLToWord(generatedExamsHTML, 'De_Thi_Tieng_Anh_Shuffled');
+}
 
-    const lines = text.split('\n');
-    const paragraphs = lines.map(line => {
-        // Tách chuỗi theo định dạng markdown **in đậm**
-        const parts = line.split(/(\*\*.*?\*\*)/g);
-        const textRuns = parts.map(part => {
-            if (part.startsWith('**') && part.endsWith('**')) {
-                // Xóa bỏ dấu ** và cấu hình in đậm
-                return new docx.TextRun({ text: part.slice(2, -2), bold: true, font: "Times New Roman", size: 28 }); // size 28 = 14pt
-            }
-            return new docx.TextRun({ text: part, font: "Times New Roman", size: 28 });
-        });
-        return new docx.Paragraph({ children: textRuns });
-    });
-
-    const doc = new docx.Document({
-        sections: [{ properties: {}, children: paragraphs }]
-    });
-
-    docx.Packer.toBlob(doc).then(blob => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `De_Thi_AI_${new Date().getTime()}.docx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    });
+function downloadKeys() {
+    exportHTMLToWord(generatedKeysHTML, 'Dap_An_Cac_Ma_De');
 }
 </script>
 </body>
