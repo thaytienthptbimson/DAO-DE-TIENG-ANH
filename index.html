@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Đảo Đề Thi Khoa Học - Chạy Trực Tiếp</title>
+    <title>PHẦN MỀM ĐẢO ĐỀ CHUYÊN DUNGJMOON TIẾNG ANH </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -634,15 +634,41 @@ def _make_block_text_mapper(block_qnums, number_str_map):
 
 _LEADING_LETTER_RE = re.compile(r'^(\s*)([ABCD])(\.)')
 
-def _relabel_first_char(seg, new_letter):
-    text, run, strip_u, is_number = seg
-    m = _LEADING_LETTER_RE.match(text)
-    if m: text = text[:m.start(2)] + new_letter + text[m.end(2):]
-    return (text, run, strip_u, is_number)
+def _relabel_first_char(segments, new_letter):
+    """Đổi chữ cái nhãn (A/B/C/D) ở đầu đáp án thành new_letter.
+    Quan trọng: Word có thể tách chữ cái và dấu chấm thành các run KHÁC NHAU
+    (vd run1="A", run2=". nội dung"). Nếu chỉ kiểm tra run/segment đầu tiên,
+    trường hợp này sẽ không khớp regex và bị bỏ sót, khiến chữ cái nhãn CŨ vẫn
+    còn nguyên trong khi đáp án đã đổi sang vị trí khác (2 đáp án cùng hiện
+    một chữ cái). Ở đây quét gộp text của vài segment đầu để tìm đúng vị trí
+    ký tự chữ cái, rồi chỉ sửa đúng 1 ký tự đó tại segment chứa nó.
+    """
+    if not segments: return segments
+    combined = ""
+    for seg_text, _r, _su, _isn in segments[:4]:
+        combined += seg_text
+        if len(combined) >= 6: break
+    m = _LEADING_LETTER_RE.match(combined)
+    if not m: return segments
+    letter_pos = m.start(2)
+
+    new_segments = list(segments)
+    pos = 0
+    for idx, (text, run, strip_u, is_number) in enumerate(new_segments):
+        seg_len = len(text)
+        if pos <= letter_pos < pos + seg_len:
+            local_i = letter_pos - pos
+            new_text = text[:local_i] + new_letter + text[local_i + 1:]
+            new_segments[idx] = (new_text, run, strip_u, is_number)
+            break
+        pos += seg_len
+    return new_segments
 
 def _emit_option_run(paragraph, opt, new_letter, is_first_of_opt):
-    for j, seg in enumerate(opt.segments):
-        if j == 0 and is_first_of_opt: seg = _relabel_first_char(seg, new_letter)
+    segments = opt.segments
+    if is_first_of_opt:
+        segments = _relabel_first_char(segments, new_letter)
+    for seg in segments:
         _copy_seg_run(paragraph, seg)
 
 def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map, out_path, header_line=None):
@@ -680,7 +706,7 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
                 for i, opt in enumerate(opts):
                     if i > 0:
                         tab_run = p.add_run("\t")
-                        if opt.segments: copy_rpr(tab_run, opt.segments[0][1])
+                        if opt.segments: copy_rpr(tab_run, opt.segments[0][1], strip_underline=True)
                     _emit_option_run(p, opt, "ABCD"[i], True)
             else:
                 for sp in q.stem_paragraphs:
@@ -694,7 +720,7 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
                     for i, opt in enumerate(opts):
                         if i > 0:
                             tab_run = p.add_run("\t")
-                            if opt.segments: copy_rpr(tab_run, opt.segments[0][1])
+                            if opt.segments: copy_rpr(tab_run, opt.segments[0][1], strip_underline=True)
                         _emit_option_run(p, opt, "ABCD"[i], True)
                 elif q.options_mode == 'separate':
                     for i, opt in enumerate(opts):
