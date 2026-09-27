@@ -570,24 +570,66 @@ def shuffle_plan(parsed, parts, opts, rng=None):
     return global_header, blocks, option_perm, number_str_map, new_order
 
 
-# --- PHẦN HỖ TRỢ REPLACE SỐ THỨ TỰ THÔNG MINH TRONG RUNS ---
-def _copy_seg_run(paragraph, seg, new_number_str=None, text_mapping=None, mapping_regex=None):
+def _copy_seg_run(paragraph, seg, new_number_str=None, mapper=None):
     text, run, strip_u, is_number = seg
     out_text = new_number_str if (is_number and new_number_str is not None) else text
     
-    if mapping_regex and out_text and not is_number:
-        out_text = mapping_regex.sub(lambda m: text_mapping[m.group(1)], out_text)
+    if mapper and out_text and not is_number:
+        out_text = mapper(out_text)
         
     r = paragraph.add_run(out_text)
     copy_rpr(r, run, strip_underline=strip_u)
     return r
 
-def _emit_plain_paragraph(doc, spec, text_mapping=None, mapping_regex=None):
+def _emit_plain_paragraph(doc, spec, mapper=None):
     p = doc.add_paragraph()
     copy_ppr(p, spec.source_paragraph)
     for seg in spec.segments: 
-        _copy_seg_run(p, seg, text_mapping=text_mapping, mapping_regex=mapping_regex)
+        _copy_seg_run(p, seg, mapper=mapper)
     return p
+
+def _make_block_text_mapper(block_qnums, number_str_map):
+    """Tạo hàm thay số thứ tự CŨ -> MỚI trong các đoạn lời dẫn/chú thích của một khối câu hỏi.
+    Xử lý 2 trường hợp khác nhau để tránh lỗi khi thứ tự câu trong khối bị xáo trộn:
+      1) Cụm nêu PHẠM VI dạng "câu X đến/tới/- câu Y": KHÔNG thay từng số một, mà thay
+         cả cụm bằng phạm vi số thứ tự MỚI thực tế (nhỏ nhất..lớn nhất) của CẢ KHỐI.
+         (Nếu thay từng số theo kiểu "X -> số mới của đúng câu X" thì khi câu X không
+         còn là câu nhỏ nhất trong khối nữa, phạm vi hiển thị sẽ bị sai, thậm chí ngược.)
+      2) Số nhắc tới MỘT câu cụ thể, đứng riêng lẻ (không thuộc cụm phạm vi ở trên):
+         vẫn thay bằng đúng số thứ tự MỚI của câu đó như trước.
+    """
+    block_mapping = {str(q): str(number_str_map[q]) for q in block_qnums}
+    if not block_mapping:
+        return None
+    new_nums = sorted(int(number_str_map[q]) for q in block_qnums)
+    range_from, range_to = str(new_nums[0]), str(new_nums[-1])
+
+    keys = sorted(block_mapping.keys(), key=len, reverse=True)
+    token_regex = re.compile(r'\b(' + '|'.join(keys) + r')\b')
+
+    def _sub_tokens(s):
+        return token_regex.sub(lambda m: block_mapping[m.group(1)], s)
+
+    def substitute(text):
+        if not text: return text
+        out = []
+        pos = 0
+        for m in PART_RE.finditer(text):
+            out.append(_sub_tokens(text[pos:m.start()]))
+            old_a, old_b = m.group(1), m.group(2)
+            full = m.group(0)
+            if old_a in block_mapping and old_b in block_mapping:
+                base = m.start(0)
+                a_s, a_e = m.start(1) - base, m.end(1) - base
+                b_s, b_e = m.start(2) - base, m.end(2) - base
+                out.append(full[:a_s] + range_from + full[a_e:b_s] + range_to + full[b_e:])
+            else:
+                out.append(full)
+            pos = m.end()
+        out.append(_sub_tokens(text[pos:]))
+        return "".join(out)
+
+    return substitute
 # -----------------------------------------------------------
 
 _LEADING_LETTER_RE = re.compile(r'^(\s*)([ABCD])(\.)')
@@ -620,12 +662,10 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
         _emit_plain_paragraph(doc, spec)
         
     for block in blocks:
-        block_mapping = {str(q): str(number_str_map[q]) for q in block["qnums"]}
-        keys = sorted(block_mapping.keys(), key=len, reverse=True)
-        mapping_regex = re.compile(r'\b(' + '|'.join(keys) + r')\b') if keys else None
+        mapper = _make_block_text_mapper(block["qnums"], number_str_map)
 
         for spec in block["specs_before"]: 
-            _emit_plain_paragraph(doc, spec, text_mapping=block_mapping, mapping_regex=mapping_regex)
+            _emit_plain_paragraph(doc, spec, mapper=mapper)
             
         for old_q_num in block["qnums"]:
             q = qmap[old_q_num]
@@ -663,7 +703,7 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
                         _emit_option_run(p, opt, "ABCD"[i], True)
 
             for spec in block["specs_internal"].get(old_q_num, []): 
-                _emit_plain_paragraph(doc, spec, text_mapping=block_mapping, mapping_regex=mapping_regex)
+                _emit_plain_paragraph(doc, spec, mapper=mapper)
                 
     if sect_prs: body.append(copy.deepcopy(sect_prs[-1]))
     doc.save(out_path)
