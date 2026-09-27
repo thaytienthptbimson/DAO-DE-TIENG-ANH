@@ -3,352 +3,601 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phần mềm Đảo Đề Thi - Trắc Nghiệm</title>
-    <!-- Thư viện hỗ trợ tạo và lưu file Word trên trình duyệt -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
-    
+    <title>Phần Mềm Đảo Đề Trắc Nghiệm Tiếng Anh</title>
     <style>
         :root {
-            --primary-color: #0056b3;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --bg-color: #f4f7f6;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --border-color: #cbd5e1;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
         }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
+
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
             padding: 20px;
-            display: flex;
-            justify-content: center;
         }
+
         .container {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        textarea {
             width: 100%;
-            max-width: 500px;
+            height: 500px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            resize: vertical;
+            font-size: 14px;
+            line-height: 1.5;
         }
-        h1 {
-            text-align: center;
-            color: var(--primary-color);
-            font-size: 24px;
-            margin-bottom: 5px;
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
         }
-        .usage-status {
-            text-align: center;
-            color: var(--danger-color);
-            font-style: italic;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
+
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
+
         .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: 500;
+            font-size: 14px;
         }
-        .file-input {
+
+        .form-group input {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
         }
-        .options-box {
-            border: 1px solid #e0e0e0;
-            padding: 15px;
-            border-radius: 5px;
-            background: #fafafa;
-            margin-bottom: 20px;
-        }
-        .options-box label {
-            display: flex;
-            align-items: center;
-            font-weight: normal;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-        .options-box input[type="checkbox"] {
-            margin-right: 10px;
-            width: 18px;
-            height: 18px;
-        }
-        .inline-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .inline-group input[type="number"] {
-            width: 70px;
-            padding: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        .tips {
-            background-color: #e9f7ef;
-            border-left: 4px solid var(--success-color);
-            padding: 10px 15px;
-            font-size: 13.5px;
-            margin-bottom: 20px;
-            border-radius: 0 5px 5px 0;
-        }
-        .tips ul {
-            margin: 5px 0 0 0;
-            padding-left: 20px;
-        }
+
         .btn {
+            display: inline-block;
             width: 100%;
             padding: 12px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
+            background-color: var(--primary);
             color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.2s;
+            text-align: center;
+            transition: background-color 0.2s;
         }
+
         .btn:hover {
-            opacity: 0.9;
+            background-color: var(--primary-hover);
         }
-        .btn-primary {
-            background-color: var(--success-color);
-            margin-bottom: 20px;
+
+        .btn-print {
+            background-color: #10b981;
+            margin-top: 10px;
         }
-        .extend-box {
-            border-top: 2px dashed #ccc;
-            padding-top: 20px;
+
+        .btn-print:hover {
+            background-color: #059669;
         }
-        .extend-group {
+
+        /* Tabs styling */
+        .tabs-header {
             display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background-color: #e2e8f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            min-height: 400px;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 16px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .question-block {
+            margin-bottom: 12px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 10px;
+            margin-top: 6px;
+            margin-bottom: 12px;
         }
-        .extend-group input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+
+        .options-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .options-grid.cols-1 { grid-template-columns: 1fr; }
+
+        .section-intro {
+            font-weight: bold;
+            margin-top: 24px;
+            margin-bottom: 12px;
         }
-        .btn-secondary {
-            background-color: var(--primary-color);
-            width: auto;
-            padding: 10px 15px;
+
+        /* Matrix Table */
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+        }
+
+        .matrix-table th, .matrix-table td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: center;
+        }
+
+        .matrix-table th {
+            background-color: #f8fafc;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .tab-content {
+                box-shadow: none;
+                padding: 0;
+            }
+            .tab-content.active {
+                display: block;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>PHẦN MỀM ĐẢO ĐỀ THI</h1>
-    <div class="usage-status" id="usageLabel">Đang tải dữ liệu...</div>
+    <div class="container">
+        <div class="header no-print">
+            <h1>Phần Mềm Đảo Đề Thi Trắc Nghiệm Tiếng Anh</h1>
+            <p style="color: var(--text-muted)">Cấu trúc giữ nguyên thứ tự câu hỏi trong đoạn văn/bài đọc</p>
+        </div>
 
-    <div class="form-group">
-        <label>Chọn file đề gốc (.docx)</label>
-        <input type="file" id="fileInput" class="file-input" accept=".docx">
-    </div>
+        <div class="main-layout no-print">
+            <!-- Cột Trái: Nhập liệu -->
+            <div class="card">
+                <div class="card-title">1. Dán nội dung đề thi gốc</div>
+                <textarea id="rawInput" placeholder="Dán văn bản đề thi thô vào đây...
+Ví dụ:
+Mark the letter A, B, C or D...
+Question 1. Nội dung câu hỏi
+A. Đáp án 1   B. Đáp án 2   C. Đáp án 3   D. Đáp án 4"></textarea>
+            </div>
 
-    <div class="tips">
-        <strong>💡 Lưu ý chuẩn bị đề gốc:</strong>
-        <ul>
-            <li>Gạch chân hoặc đánh dấu <b>*</b> vào đáp án đúng.</li>
-            <li>Hệ thống sẽ giữ nguyên các phần in đậm, gạch chân khi xuất file.</li>
-        </ul>
-    </div>
+            <!-- Cột Phải: Cấu hình -->
+            <div class="card">
+                <div class="card-title">2. Cấu hình đảo đề</div>
+                <div class="form-group">
+                    <label for="numCodes">Số lượng mã đề cần tạo:</label>
+                    <input type="number" id="numCodes" value="4" min="1" max="24">
+                </div>
+                <div class="form-group">
+                    <label for="startCode">Bắt đầu từ mã đề số:</label>
+                    <input type="number" id="startCode" value="101" min="1">
+                </div>
+                <button class="btn" id="btnShuffle" onclick="processAndShuffle()">Tiến hành đảo đề</button>
+                <button class="btn btn-print" onclick="window.print()">🖨️ In nội dung Tab hiện tại</button>
+            </div>
+        </div>
 
-    <div class="options-box">
-        <label>
-            <input type="checkbox" id="chkParts">
-            Đảo các phần / đoạn văn (Mục lựa chọn)
-        </label>
-        <label>
-            <input type="checkbox" id="chkQuestions" checked>
-            Đảo thứ tự câu hỏi
-        </label>
-        <label>
-            <input type="checkbox" id="chkOptions" checked>
-            Đảo đáp án (A, B, C, D) từng câu
-        </label>
-        
-        <div class="inline-group" style="margin-top: 15px;">
-            <label style="margin:0;">Số lượng mã đề (Tối đa 50):</label>
-            <input type="number" id="numCopies" min="1" max="50" value="1">
+        <!-- Khu vực hiển thị kết quả -->
+        <div id="resultsArea" style="display: none;">
+            <div class="tabs-header no-print" id="tabsHeader">
+                <!-- Các nút tab sẽ được sinh ra ở đây -->
+            </div>
+            <div id="tabsContainer">
+                <!-- Nội dung các tab (Đề thi & Ma trận) sẽ được sinh ra ở đây -->
+            </div>
         </div>
     </div>
-
-    <button class="btn btn-primary" id="btnShuffle">TIẾN HÀNH ĐẢO VÀ XUẤT FILE DOCX</button>
-
-    <div class="extend-box">
-        <label>Gia hạn số lần sử dụng:</label>
-        <div class="extend-group">
-            <input type="password" id="txtPassword" placeholder="Nhập mật khẩu...">
-            <button class="btn btn-secondary" id="btnExtend">Kích hoạt (+10 lần)</button>
-        </div>
-    </div>
-</div>
 
 <script>
-    // --- QUẢN LÝ SỐ LẦN DÙNG THỬ (LƯU TRÊN LOCALSTORAGE) ---
-    const PASSWORD = "sonkiet20032013@";
-    let isShuffling = false;
-
-    function getUsageLeft() {
-        let usage = localStorage.getItem('usage_left');
-        if (usage === null || isNaN(usage)) {
-            usage = 10;
-            localStorage.setItem('usage_left', usage);
-        }
-        return parseInt(usage);
-    }
-
-    function setUsageLeft(val) {
-        localStorage.setItem('usage_left', val);
-        updateUsageUI();
-    }
-
-    function updateUsageUI() {
-        let usage = getUsageLeft();
-        document.getElementById('usageLabel').innerText = `Số lần dùng thử còn lại: ${usage} lần`;
-    }
-
-    function decrementUsage() {
-        let usage = getUsageLeft();
-        if (usage > 0) {
-            setUsageLeft(usage - 1);
+    /* =========================================================
+       1. CẤU TRÚC DỮ LIỆU (DATA STRUCTURES)
+       ========================================================= */
+    class Exam {
+        constructor() {
+            this.sections = [];
         }
     }
 
-    updateUsageUI();
-
-    // 1. Gia hạn mật khẩu
-    document.getElementById('btnExtend').addEventListener('click', function() {
-        const pwd = document.getElementById('txtPassword').value;
-        if (pwd === PASSWORD) {
-            let current = getUsageLeft();
-            setUsageLeft(current + 10);
-            alert("Kích hoạt thành công! Bạn được cộng thêm 10 lần sử dụng.");
-            document.getElementById('txtPassword').value = '';
-        } else {
-            alert("Mật khẩu không chính xác!");
+    class Section {
+        constructor(intro) {
+            this.intro = intro; // Bao gồm câu lệnh (Mark the letter...) và đoạn văn (Passage)
+            this.questions = [];
         }
-    });
-
-    // --- HÀM XUẤT FILE DOCX BẰNG THƯ VIỆN docx.js ---
-    async function generateAndDownloadDocx(fileName, maDe) {
-        const { Document, Packer, Paragraph, TextRun } = docx;
-
-        // Tạo cấu trúc cho file Word mới
-        const doc = new Document({
-            sections: [{
-                properties: {},
-                children: [
-                    new Paragraph({
-                        children: [
-                            new TextRun({
-                                text: "MÃ ĐỀ: " + maDe,
-                                bold: true,
-                                size: 32 // Kích thước chữ (16pt)
-                            }),
-                        ],
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({
-                                text: "Đây là tệp được đảo và xuất ra từ file gốc: " + fileName,
-                                italics: true,
-                            }),
-                        ],
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({
-                                text: "\nNội dung đã được xáo trộn tự động (Câu hỏi, Đáp án). Các chữ ",
-                            }),
-                            new TextRun({
-                                text: "in đậm",
-                                bold: true,
-                            }),
-                            new TextRun({
-                                text: " và ",
-                            }),
-                            new TextRun({
-                                text: "gạch chân",
-                                underline: {},
-                            }),
-                            new TextRun({
-                                text: " được giữ nguyên theo chuẩn yêu cầu.",
-                            })
-                        ],
-                    }),
-                ],
-            }]
-        });
-
-        // Chuyển đổi thành blob và tải xuống
-        const blob = await Packer.toBlob(doc);
-        saveAs(blob, `De_Thi_Ma_${maDe}.docx`);
     }
 
-    // 2. Nút tiến hành đảo đề
-    document.getElementById('btnShuffle').addEventListener('click', async function() {
-        let usage = getUsageLeft();
-        if (usage <= 0) {
-            alert("Bạn đã hết số lần dùng thử. Vui lòng nhập mật khẩu để gia hạn!");
-            return;
+    class Question {
+        constructor(originalNum, stem, options) {
+            this.originalNum = originalNum;
+            this.stem = stem;
+            this.options = options; // Mảng 4 chuỗi text tương ứng A, B, C, D gốc
         }
+    }
 
-        const fileInput = document.getElementById('fileInput');
-        if (fileInput.files.length === 0) {
-            alert("Vui lòng chọn file Word (VD: MA DE 1101.docx) trước khi đảo!");
-            return;
-        }
+    // Biến lưu trữ dữ liệu đề gốc
+    let masterExamData = new Exam();
 
-        const numCopies = parseInt(document.getElementById('numCopies').value);
-        if (numCopies < 1 || numCopies > 50) {
-            alert("Số lượng mã đề phải từ 1 đến 50!");
-            return;
-        }
+    /* =========================================================
+       2. THUẬT TOÁN BÓC TÁCH (PARSER) - PROMPT 2
+       ========================================================= */
+    function parseRawText(rawText) {
+        let lines = rawText.split('\n');
+        let exam = new Exam();
+        let currentSection = null;
+        let currentQuestion = null;
+        let parseMode = 'intro'; // 'intro', 'stem', 'options'
 
-        isShuffling = true;
-        decrementUsage();
-        const fileName = fileInput.files[0].name;
+        // Regex phát hiện bắt đầu một phần mới (Section)
+        const sectionRegex = /^(Mark the|Read the|Read following|Choose the|Indicate the)/i;
+        // Regex phát hiện bắt đầu câu hỏi mới
+        const questionRegex = /^Question\s+(\d+)\.(.*)/i;
+        // Regex phát hiện bắt đầu của dòng chứa đáp án A.
+        const optionStartRegex = /^[A-D]\.\s/i;
 
-        // Vòng lặp xuất file (có độ trễ nhẹ giữa các file để trình duyệt kịp tải)
-        for(let i = 0; i < numCopies; i++) {
-            // Random mã đề từ 100 -> 999
-            let maDeCode = Math.floor(Math.random() * 900) + 100;
-            
-            // Gọi hàm xuất file Docx
-            await generateAndDownloadDocx(fileName, maDeCode);
-            
-            // Đợi 500ms trước khi tải file tiếp theo để tránh bị trình duyệt chặn tải xuống nhiều file cùng lúc
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+            if (!line) continue;
 
-        alert(`Đã hoàn tất xuất thành công ${numCopies} file DOCX mã đề! Vui lòng kiểm tra thư mục Download (Tải xuống) trên máy tính của bạn.`);
-        
-        setTimeout(() => { isShuffling = false; }, 1000);
-    });
+            // Kiểm tra xem có phải bắt đầu Section mới không
+            if (sectionRegex.test(line)) {
+                if (currentSection) exam.sections.push(currentSection);
+                currentSection = new Section(line + '\n');
+                parseMode = 'intro';
+                continue;
+            }
 
-    // Bắt sự kiện phím F5
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
-            if (getUsageLeft() > 0 && !isShuffling) {
-                decrementUsage();
+            // Kiểm tra xem có phải bắt đầu Câu hỏi mới không
+            let qMatch = line.match(questionRegex);
+            if (qMatch) {
+                // Nếu chưa có section nào được tạo ra, tạo một section mặc định
+                if (!currentSection) {
+                    currentSection = new Section('');
+                }
+                currentQuestion = new Question(
+                    parseInt(qMatch[1]), 
+                    qMatch[2] + '\n', 
+                    []
+                );
+                currentQuestion.optionsRaw = ''; // Lưu tạm chuỗi chứa các đáp án
+                currentSection.questions.push(currentQuestion);
+                parseMode = 'stem';
+                continue;
+            }
+
+            // Kiểm tra dòng bắt đầu bằng A. B. C. D.
+            if (optionStartRegex.test(line) && currentQuestion) {
+                parseMode = 'options';
+            }
+
+            // Phân bổ nội dung vào các thuộc tính dựa trên parseMode
+            if (parseMode === 'intro' && currentSection) {
+                currentSection.intro += line + '\n';
+            } else if (parseMode === 'stem' && currentQuestion) {
+                currentQuestion.stem += line + '\n';
+            } else if (parseMode === 'options' && currentQuestion) {
+                currentQuestion.optionsRaw += line + ' ';
             }
         }
-    });
 
-    // Bắt sự kiện đóng tab/trình duyệt
-    window.addEventListener('beforeunload', function (e) {
-        if (getUsageLeft() > 0 && !isShuffling) {
-            decrementUsage();
+        if (currentSection) exam.sections.push(currentSection);
+
+        // Xử lý tách chuỗi `optionsRaw` thành mảng 4 đáp án A, B, C, D độc lập
+        exam.sections.forEach(sec => {
+            sec.questions.forEach(q => {
+                let optStr = q.optionsRaw;
+                // Regex thông minh để bắt nội dung theo từng đáp án
+                let aMatch = optStr.match(/A\.\s*(.*?)(?=B\.\s*|$)/i);
+                let bMatch = optStr.match(/B\.\s*(.*?)(?=C\.\s*|$)/i);
+                let cMatch = optStr.match(/C\.\s*(.*?)(?=D\.\s*|$)/i);
+                let dMatch = optStr.match(/D\.\s*(.*)/i);
+
+                q.options = [
+                    aMatch ? aMatch[1].trim() : "",
+                    bMatch ? bMatch[1].trim() : "",
+                    cMatch ? cMatch[1].trim() : "",
+                    dMatch ? dMatch[1].trim() : ""
+                ];
+            });
+        });
+
+        return exam;
+    }
+
+    /* =========================================================
+       3. THUẬT TOÁN ĐẢO ĐỀ (SHUFFLER) - PROMPT 3
+       ========================================================= */
+    function shuffleArray(array) {
+        let newArr = [...array];
+        for (let i = newArr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
         }
-    });
+        return newArr;
+    }
 
+    function processAndShuffle() {
+        const rawText = document.getElementById('rawInput').value;
+        if (!rawText.trim()) {
+            alert("Vui lòng dán nội dung đề thi vào khung bên trái!");
+            return;
+        }
+
+        // 1. Parsing dữ liệu
+        masterExamData = parseRawText(rawText);
+        if (masterExamData.sections.length === 0) {
+            alert("Không thể nhận diện cấu trúc đề. Vui lòng kiểm tra lại định dạng (Các phần bắt đầu bằng 'Mark the / Read the...', câu hỏi bắt đầu bằng 'Question X.').");
+            return;
+        }
+
+        const numCodes = parseInt(document.getElementById('numCodes').value);
+        const startCode = parseInt(document.getElementById('startCode').value);
+
+        let generatedExams = []; // Mảng chứa các mã đề đã tạo
+        
+        // 2. Tiến hành nhân bản và Đảo đề
+        for (let i = 0; i < numCodes; i++) {
+            let examCode = startCode + i;
+            
+            // Deep clone để không ảnh hưởng dữ liệu gốc
+            let cloneSections = JSON.parse(JSON.stringify(masterExamData.sections));
+            
+            // RÀNG BUỘC 2.2: Chỉ đảo vị trí của các "Phần thi" (Sections) với nhau.
+            let shuffledSections = shuffleArray(cloneSections);
+
+            let questionCounter = 1;
+            // Ánh xạ (Mapping) để cập nhật số thứ tự trên intro/passage và làm Ma trận
+            // Cấu trúc: mappingData[oldQNum] = { newQNum: X, optMap: { 'A': 'C', 'B': 'A', ... } }
+            let mappingData = {}; 
+
+            shuffledSections.forEach(sec => {
+                // RÀNG BUỘC 2.1: TUYỆT ĐỐI KHÔNG ĐƯỢC đảo vị trí các câu hỏi bên trong các phần.
+                // Do đó, ta duyệt mảng sec.questions theo thứ tự tuyến tính hiện tại
+                sec.questions.forEach(q => {
+                    let oldNum = q.originalNum;
+                    let newNum = questionCounter++;
+
+                    // RÀNG BUỘC 1: ĐƯỢC PHÉP đảo lộn vị trí 4 đáp án (A, B, C, D)
+                    // Lưu lại nhãn gốc để truy vết ma trận
+                    let optionsWithLabels = q.options.map((text, idx) => {
+                        return { text: text, oldLabel: String.fromCharCode(65 + idx) }; // 65 là mã ASCII của 'A'
+                    });
+
+                    let shuffledOptions = shuffleArray(optionsWithLabels);
+                    
+                    q.options = shuffledOptions.map(o => o.text);
+                    
+                    let optMap = {};
+                    shuffledOptions.forEach((o, idx) => {
+                        let newLabel = String.fromCharCode(65 + idx);
+                        optMap[o.oldLabel] = newLabel; // Ví dụ: Đáp án A gốc giờ biến thành nhãn mới nào
+                    });
+
+                    mappingData[oldNum] = { newQNum: newNum, optMap: optMap };
+                    q.newNum = newNum;
+                });
+            });
+
+            // Sau khi có mapping, quay lại update số đếm trong đoạn intro/passage
+            // RÀNG BUỘC 3: Tự động đánh lại số câu trong các lời dẫn
+            shuffledSections.forEach(sec => {
+                // Thay thế chuỗi dạng "from 1 to 5" -> "from [newStart] to [newEnd]"
+                sec.intro = sec.intro.replace(/(from\s+)(\d+)(\s+to\s+)(\d+)/gi, (match, p1, p2, p3, p4) => {
+                    let n1 = mappingData[parseInt(p2)] ? mappingData[parseInt(p2)].newQNum : p2;
+                    let n2 = mappingData[parseInt(p4)] ? mappingData[parseInt(p4)].newQNum : p4;
+                    return `${p1}${n1}${p3}${n2}`;
+                });
+
+                // Thay thế chuỗi dạng (6), [7], _______(8) trong bài điền từ
+                sec.intro = sec.intro.replace(/(\(|\[\vert{}\{)(\d+)(\)\vert{}\]|\})/g, (match, p1, p2, p3) => {
+                    let n = mappingData[parseInt(p2)] ? mappingData[parseInt(p2)].newQNum : p2;
+                    return `${p1}${n}${p3}`;
+                });
+            });
+
+            generatedExams.push({
+                code: examCode,
+                sections: shuffledSections,
+                mapping: mappingData
+            });
+        }
+
+        // 3. Render giao diện HTML
+        renderResults(generatedExams);
+    }
+
+    /* =========================================================
+       4. HIỂN THỊ KẾT QUẢ VÀ MA TRẬN
+       ========================================================= */
+    function renderResults(exams) {
+        document.getElementById('resultsArea').style.display = 'block';
+        const tabsHeader = document.getElementById('tabsHeader');
+        const tabsContainer = document.getElementById('tabsContainer');
+        
+        tabsHeader.innerHTML = '';
+        tabsContainer.innerHTML = '';
+
+        // Hàm tiện ích tạo giao diện 4 đáp án thông minh (tùy độ dài text)
+        function getOptionsHTML(optionsArr) {
+            let maxLen = Math.max(...optionsArr.map(o => o.length));
+            let gridClass = 'cols-4'; // Mặc định 4 cột
+            if (maxLen > 25 && maxLen <= 60) gridClass = 'cols-2'; // Chia 2 cột nếu dài vừa
+            else if (maxLen > 60) gridClass = 'cols-1'; // 1 cột nếu quá dài
+
+            const labels = ['A', 'B', 'C', 'D'];
+            let html = `<div class="options-grid ${gridClass}">`;
+            optionsArr.forEach((opt, idx) => {
+                html += `<div><strong>${labels[idx]}.</strong> ${opt}</div>`;
+            });
+            html += `</div>`;
+            return html;
+        }
+
+        // Render từng tab Mã đề
+        exams.forEach((examData, index) => {
+            let tabBtn = document.createElement('button');
+            tabBtn.className = `tab-btn no-print ${index === 0 ? 'active' : ''}`;
+            tabBtn.innerText = `Mã đề ${examData.code}`;
+            tabBtn.onclick = () => switchTab(`tab_code_${examData.code}`, tabBtn);
+            tabsHeader.appendChild(tabBtn);
+
+            let tabContent = document.createElement('div');
+            tabContent.id = `tab_code_${examData.code}`;
+            tabContent.className = `tab-content ${index === 0 ? 'active' : ''}`;
+
+            let html = `<h2 style="text-align: center; margin-bottom: 20px;">ĐỀ THI TIẾNG ANH - MÃ ĐỀ: ${examData.code}</h2>`;
+
+            examData.sections.forEach(sec => {
+                // Hiển thị intro/passage (xử lý xuống dòng)
+                let introFormatted = sec.intro.replace(/\n/g, '<br/>');
+                html += `<div class="section-intro">${introFormatted}</div>`;
+
+                sec.questions.forEach(q => {
+                    html += `<div class="question-block">`;
+                    html += `<strong>Question ${q.newNum}.</strong> ${q.stem.replace(/\n/g, '<br/>')}`;
+                    html += getOptionsHTML(q.options);
+                    html += `</div>`;
+                });
+            });
+
+            tabContent.innerHTML = html;
+            tabsContainer.appendChild(tabContent);
+        });
+
+        // Render tab Ma trận đáp án
+        let matrixBtn = document.createElement('button');
+        matrixBtn.className = `tab-btn no-print`;
+        matrixBtn.innerText = `Ma trận đáp án`;
+        matrixBtn.onclick = () => switchTab('tab_matrix', matrixBtn);
+        tabsHeader.appendChild(matrixBtn);
+
+        let matrixContent = document.createElement('div');
+        matrixContent.id = `tab_matrix`;
+        matrixContent.className = `tab-content`;
+        
+        let matrixHtml = `<h2 style="text-align: center; margin-bottom: 20px;">MA TRẬN DỊCH CHUYỂN ĐÁP ÁN</h2>`;
+        matrixHtml += `<p style="margin-bottom:15px; color:var(--text-muted);"><em>Hướng dẫn đọc: Cột hiển thị: "Gốc Q5 (A➡C, B➡D...)" nghĩa là Câu 5 gốc đã trở thành câu tương ứng ở dòng đó. Đáp án A gốc bị đảo thành C trong mã này.</em></p>`;
+        
+        matrixHtml += `<table class="matrix-table"><thead><tr>`;
+        matrixHtml += `<th>Mã đề / Câu mới</th>`;
+        
+        // Tìm số câu lớn nhất
+        let totalQuestions = 0;
+        exams[0].sections.forEach(sec => totalQuestions += sec.questions.length);
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            matrixHtml += `<th>Câu ${i}</th>`;
+        }
+        matrixHtml += `</tr></thead><tbody>`;
+
+        exams.forEach(examData => {
+            matrixHtml += `<tr><td><strong>Mã ${examData.code}</strong></td>`;
+            for (let i = 1; i <= totalQuestions; i++) {
+                // Truy xuất mapping
+                let cellData = "";
+                for (let oldQ in examData.mapping) {
+                    if (examData.mapping[oldQ].newQNum === i) {
+                        let optMap = examData.mapping[oldQ].optMap;
+                        cellData = `Gốc Q${oldQ}<br>(A➡${optMap['A']}, B➡${optMap['B']}, C➡${optMap['C']}, D➡${optMap['D']})`;
+                        break;
+                    }
+                }
+                matrixHtml += `<td>${cellData}</td>`;
+            }
+            matrixHtml += `</tr>`;
+        });
+        
+        matrixHtml += `</tbody></table>`;
+        matrixContent.innerHTML = matrixHtml;
+        tabsContainer.appendChild(matrixContent);
+    }
+
+    // Chuyển đổi tab
+    function switchTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        btnElement.classList.add('active');
+    }
 </script>
 
 </body>
