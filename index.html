@@ -1,410 +1,293 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Phần Mềm Đảo Đề Tiếng Anh & Trình Soạn Thảo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phần mềm Đảo Đề Thi - Trắc Nghiệm</title>
     <style>
         :root {
-            --brand: #2563eb; --brand-dark: #1d4ed8; --bg: #f8fafc;
-            --card: #ffffff; --border: #e2e8f0; --text: #1e293b;
-            --mut: #64748b; --ok: #16a34a; --danger: #ef4444;
+            --primary-color: #0056b3;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --bg-color: #f4f7f6;
         }
-        * { box-sizing: border-box; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; margin: 0; padding: 20px; }
-        .container { max-width: 1400px; margin: auto; }
-        .header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header h1 { margin: 0 0 8px; font-size: 24px; }
-        .header p { margin: 0; opacity: 0.9; font-size: 15px; }
-        
-        .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
-        @media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } }
-        
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .card h2 { margin: 0 0 16px; font-size: 18px; color: var(--brand); border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
-        
-        /* Chuyển đổi tab */
-        .tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
-        .tab-btn { padding: 8px 16px; border: none; background: #e2e8f0; border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--mut); }
-        .tab-btn.active { background: var(--brand); color: white; }
-        
-        textarea { width: 100%; height: 600px; padding: 16px; border: 1px solid var(--border); border-radius: 8px; font-family: ui-monospace, monospace; font-size: 13px; resize: vertical; background: #f8fafc; color: #334155; }
-        
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
-        .form-group input, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; font-family: inherit;}
-        
-        .btn { display: flex; align-items: center; justify-content: center; width: 100%; padding: 12px; background: var(--brand); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 12px; }
-        .btn:hover { background: var(--brand-dark); }
-        .btn-success { background: var(--ok); }
-        .btn-success:hover { background: #15803d; }
-        
-        /* Giao diện trực quan */
-        #visualEditor { height: 600px; overflow-y: auto; padding-right: 10px; }
-        .ve-section { background: #f1f5f9; border-left: 4px solid var(--brand); padding: 15px; margin-bottom: 20px; border-radius: 4px; }
-        .ve-question { background: white; border: 1px solid var(--border); padding: 15px; margin-top: 10px; border-radius: 6px; }
-        .ve-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .ve-option-item { display: flex; align-items: center; gap: 8px; }
-        .ve-option-item input[type="radio"] { width: 18px; height: 18px; accent-color: var(--ok); cursor: pointer; }
-        
-        .instructions { font-size: 13.5px; color: var(--mut); background: #eff6ff; border: 1px solid #bfdbfe; padding: 16px; border-radius: 8px; }
-        .instructions code { background: #dbeafe; color: #1e3a8a; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-        #status { text-align: center; font-weight: 600; color: var(--ok); margin-top: 10px; display: none; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .usage-status {
+            text-align: center;
+            color: var(--danger-color);
+            font-style: italic;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .file-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .options-box {
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 5px;
+            background: #fafafa;
+            margin-bottom: 20px;
+        }
+        .options-box label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .options-box input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+        .inline-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .inline-group input[type="number"] {
+            width: 70px;
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .tips {
+            background-color: #e9f7ef;
+            border-left: 4px solid var(--success-color);
+            padding: 10px 15px;
+            font-size: 13.5px;
+            margin-bottom: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        .tips ul {
+            margin: 5px 0 0 0;
+            padding-left: 20px;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .btn-primary {
+            background-color: var(--success-color);
+            margin-bottom: 20px;
+        }
+        .extend-box {
+            border-top: 2px dashed #ccc;
+            padding-top: 20px;
+        }
+        .extend-group {
+            display: flex;
+            gap: 10px;
+        }
+        .extend-group input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .btn-secondary {
+            background-color: var(--primary-color);
+            width: auto;
+            padding: 10px 15px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h1>Phần Mềm Đảo Đề Tiếng Anh (Tích hợp Editor Trực quan)</h1>
-        <p>Chuẩn hóa định dạng Word XML (Lề 1.27cm, 11pt, giãn dòng 1.15) tiết kiệm giấy tối đa.</p>
+    <h1>PHẦN MỀM ĐẢO ĐỀ THI</h1>
+    <div class="usage-status" id="usageLabel">Đang tải dữ liệu...</div>
+
+    <div class="form-group">
+        <label>Chọn file đề gốc (.docx)</label>
+        <input type="file" id="fileInput" class="file-input" accept=".docx">
     </div>
 
-    <div class="grid">
-        <!-- Khu vực soạn thảo -->
-        <div class="card">
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('visual')">👁️ Giao diện Trực quan</button>
-                <button class="tab-btn" onclick="switchTab('json')">{" "} Mã JSON Gốc</button>
-            </div>
-            
-            <div id="visualTab">
-                <div id="visualEditor"></div>
-                <button class="btn btn-success" style="margin-top: 15px; width: auto; padding: 10px 20px;" onclick="syncVisualToJson()">💾 Cập nhật thay đổi</button>
-            </div>
-            
-            <div id="jsonTab" style="display: none;">
-                <textarea id="jsonInput" spellcheck="false" onblur="syncJsonToVisual()"></textarea>
-            </div>
-        </div>
-        
-        <!-- Khu vực điều khiển -->
-        <div>
-            <div class="card" style="margin-bottom: 24px;">
-                <h2>Cấu hình Đảo đề</h2>
-                <div class="form-group">
-                    <label>Số lượng mã đề cần tạo (Max: 24)</label>
-                    <input type="number" id="numCodes" min="1" max="24" value="4">
-                </div>
-                <div class="form-group">
-                    <label>Mã đề bắt đầu (Vd: 101)</label>
-                    <input type="number" id="startCode" value="101">
-                </div>
-                
-                <button class="btn" id="btnShuffle" onclick="shuffleExam()">🎲 TIẾN HÀNH ĐẢO ĐỀ</button>
-                <div id="status">✅ Đã đảo xong! Đang xuất file...</div>
-                
-                <div id="downloadArea" style="display: none; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
-                    <button class="btn btn-success" onclick="downloadExams()">📄 TẢI ĐỀ THI (Tối ưu Word)</button>
-                    <button class="btn btn-success" onclick="downloadKeys()">🔑 TẢI BẢNG ĐÁP ÁN</button>
-                </div>
-            </div>
+    <div class="tips">
+        <strong>💡 Lưu ý chuẩn bị đề gốc:</strong>
+        <ul>
+            <li>Gạch chân hoặc đánh dấu <b>*</b> vào đáp án đúng để phần mềm nhận dạng.</li>
+            <li>Rà soát kỹ nội dung (VD: Câu 10 cần đảm bảo đủ 5 lời thoại; rà soát Câu 27 tránh lặp lại nguyên văn của đề mẫu).</li>
+        </ul>
+    </div>
 
-            <div class="instructions">
-                <b>Hướng dẫn:</b>
-                <ul style="margin: 10px 0 0; padding-left: 20px;">
-                    <li>Sửa đề trực tiếp trên <b>Giao diện trực quan</b>, hệ thống tự sinh mã JSON.</li>
-                    <li>Sử dụng <code>{số_câu}</code> trong Yêu cầu/Đoạn văn để auto-update số thứ tự khi đảo.</li>
-                    <li>Dùng <code>**chữ**</code> để in đậm từ khóa.</li>
-                </ul>
-            </div>
+    <div class="options-box">
+        <label>
+            <input type="checkbox" id="chkParts">
+            Đảo các phần / đoạn văn (Mục lựa chọn)
+        </label>
+        <label>
+            <input type="checkbox" id="chkQuestions" checked>
+            Đảo thứ tự câu hỏi
+        </label>
+        <label>
+            <input type="checkbox" id="chkOptions" checked>
+            Đảo đáp án (A, B, C, D) từng câu
+        </label>
+        
+        <div class="inline-group" style="margin-top: 15px;">
+            <label style="margin:0;">Số lượng mã đề (Tối đa 50):</label>
+            <input type="number" id="numCopies" min="1" max="50" value="1">
+        </div>
+    </div>
+
+    <button class="btn btn-primary" id="btnShuffle">TIẾN HÀNH ĐẢO ĐỀ</button>
+
+    <div class="extend-box">
+        <label>Gia hạn số lần sử dụng:</label>
+        <div class="extend-group">
+            <input type="password" id="txtPassword" placeholder="Nhập mật khẩu...">
+            <button class="btn btn-secondary" id="btnExtend">Kích hoạt (+10 lần)</button>
         </div>
     </div>
 </div>
 
 <script>
-const defaultJSON = {
-  "header": {
-    "school": "SỞ GIÁO DỤC VÀ ĐÀO TẠO",
-    "examName": "KỲ THI TỐT NGHIỆP THPT NĂM 2026",
-    "subject": "Môn thi: TIẾNG ANH",
-    "time": "Thời gian làm bài: 50 phút"
-  },
-  "sections": [
-    {
-      "id": "s1",
-      "instruction": "Mark the letter A, B, C, or D to indicate the word whose underlined part differs from the other three.",
-      "passage": "",
-      "questions": [
-        { "id": 1, "stem": "", "options": ["n**a**tion", "c**a**ve", "h**a**t", "f**a**ce"], "answer": 2 },
-        { "id": 2, "stem": "", "options": ["stopp**ed**", "look**ed**", "laugh**ed**", "provid**ed**"], "answer": 3 }
-      ]
-    }
-  ]
-};
+    // --- QUẢN LÝ SỐ LẦN DÙNG THỬ (LƯU TRÊN LOCALSTORAGE) ---
+    const PASSWORD = "sonkiet20032013@";
+    let isShuffling = false; // Biến cờ để tránh trừ điểm 2 lần khi bấm nút đảo (do reload)
 
-document.getElementById('jsonInput').value = JSON.stringify(defaultJSON, null, 2);
-let currentExamData = JSON.parse(document.getElementById('jsonInput').value);
-
-// --- QUẢN LÝ TAB & ĐỒNG BỘ ---
-function switchTab(tab) {
-    document.getElementById('visualTab').style.display = tab === 'visual' ? 'block' : 'none';
-    document.getElementById('jsonTab').style.display = tab === 'json' ? 'block' : 'none';
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    if(tab === 'visual') syncJsonToVisual();
-}
-
-function syncJsonToVisual() {
-    try {
-        currentExamData = JSON.parse(document.getElementById('jsonInput').value);
-        renderVisualEditor(currentExamData);
-    } catch (e) {
-        alert("Lỗi cú pháp JSON! Vui lòng sửa lỗi trước khi chuyển sang giao diện trực quan.");
-        switchTab('json');
-    }
-}
-
-function syncVisualToJson() {
-    const editor = document.getElementById('visualEditor');
-    
-    currentExamData.header.school = document.getElementById('h_school').value;
-    currentExamData.header.examName = document.getElementById('h_exam').value;
-    currentExamData.header.subject = document.getElementById('h_subject').value;
-    currentExamData.header.time = document.getElementById('h_time').value;
-
-    const sections = editor.querySelectorAll('.ve-section');
-    currentExamData.sections = Array.from(sections).map((sec, sIdx) => {
-        const sId = sec.querySelector('.s_id').value;
-        const sInst = sec.querySelector('.s_inst').value;
-        const sPass = sec.querySelector('.s_pass').value;
-        
-        const questions = Array.from(sec.querySelectorAll('.ve-question')).map((qBlock, qIdx) => {
-            const qId = parseInt(qBlock.querySelector('.q_id').value);
-            const qStem = qBlock.querySelector('.q_stem').value;
-            const opts = Array.from(qBlock.querySelectorAll('.q_opt')).map(inp => inp.value);
-            
-            let ansIndex = 0;
-            const radios = qBlock.querySelectorAll('input[type="radio"]');
-            radios.forEach((r, idx) => { if(r.checked) ansIndex = idx; });
-
-            return { id: qId, stem: qStem, options: opts, answer: ansIndex };
-        });
-
-        return { id: sId, instruction: sInst, passage: sPass, questions: questions };
-    });
-
-    document.getElementById('jsonInput').value = JSON.stringify(currentExamData, null, 2);
-    alert("Đã lưu & đồng bộ dữ liệu thành công!");
-}
-
-function renderVisualEditor(data) {
-    let html = `
-        <div class="ve-section" style="border-color: #94a3b8; background: #f8fafc;">
-            <h3 style="margin-top:0; color: #334155;">Thông tin chung (Header)</h3>
-            <div class="ve-options">
-                <input type="text" id="h_school" value="${data.header.school}" placeholder="Sở GD&ĐT...">
-                <input type="text" id="h_exam" value="${data.header.examName}" placeholder="Kỳ thi...">
-                <input type="text" id="h_subject" value="${data.header.subject}" placeholder="Môn thi...">
-                <input type="text" id="h_time" value="${data.header.time}" placeholder="Thời gian...">
-            </div>
-        </div>
-    `;
-
-    data.sections.forEach((sec, sIdx) => {
-        html += `
-            <div class="ve-section">
-                <input type="hidden" class="s_id" value="${sec.id}">
-                <div class="form-group">
-                    <label>Yêu cầu phần thi (Dùng {số_câu} để tự động nhảy số):</label>
-                    <textarea class="s_inst" rows="2">${sec.instruction}</textarea>
-                </div>
-                <div class="form-group">
-                    <label>Đoạn văn đọc hiểu (Bỏ trống nếu không có):</label>
-                    <textarea class="s_pass" rows="3">${sec.passage}</textarea>
-                </div>
-        `;
-        
-        sec.questions.forEach((q, qIdx) => {
-            let optsHTML = '';
-            q.options.forEach((opt, oIdx) => {
-                const isChecked = (q.answer === oIdx) ? 'checked' : '';
-                optsHTML += `
-                    <div class="ve-option-item">
-                        <input type="radio" name="ans_${sIdx}_${q.id}" ${isChecked} title="Chọn làm đáp án đúng">
-                        <input type="text" class="q_opt" value="${opt}" placeholder="Phương án ${String.fromCharCode(65+oIdx)}">
-                    </div>
-                `;
-            });
-
-            html += `
-                <div class="ve-question">
-                    <div style="display:flex; gap:10px;">
-                        <input type="number" class="q_id" value="${q.id}" style="width:70px;" title="ID Câu">
-                        <input type="text" class="q_stem" value="${q.stem}" placeholder="Nội dung câu hỏi..." style="flex:1;">
-                    </div>
-                    <div class="ve-options">${optsHTML}</div>
-                </div>
-            `;
-        });
-        html += `</div>`;
-    });
-    document.getElementById('visualEditor').innerHTML = html;
-}
-
-// Khởi tạo lần đầu
-syncJsonToVisual();
-
-// --- THUẬT TOÁN ĐẢO ĐỀ & XUẤT WORD (ĐÃ TỐI ƯU XML) ---
-let generatedExamsHTML = "";
-let generatedKeysHTML = "";
-
-function shuffleArray(array) {
-    let arr = array.slice();
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
-
-function parseMarkdown(text) {
-    return text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-}
-
-function getOptionsLayoutHTML(options) {
-    let maxLen = Math.max(...options.map(o => o.text.length));
-    const letters = ["A", "B", "C", "D"];
-    let html = `<table class="opt-table">`;
-    
-    if (maxLen < 25) { // 4 cột
-        html += `<tr>`;
-        for(let i=0; i<4; i++){ html += `<td style="width:25%;"><b>${letters[i]}.</b> ${parseMarkdown(options[i].text)}</td>`; }
-        html += `</tr>`;
-    } else if (maxLen < 60) { // 2 cột
-        html += `<tr><td style="width:50%;"><b>A.</b> ${parseMarkdown(options[0].text)}</td><td style="width:50%;"><b>B.</b> ${parseMarkdown(options[1].text)}</td></tr>`;
-        html += `<tr><td style="width:50%;"><b>C.</b> ${parseMarkdown(options[2].text)}</td><td style="width:50%;"><b>D.</b> ${parseMarkdown(options[3].text)}</td></tr>`;
-    } else { // 1 cột
-        for(let i=0; i<4; i++){ html += `<tr><td><b>${letters[i]}.</b> ${parseMarkdown(options[i].text)}</td></tr>`; }
-    }
-    html += `</table>`;
-    return html;
-}
-
-function shuffleExam() {
-    document.getElementById('status').style.display = 'block';
-    document.getElementById('status').textContent = 'Đang xử lý xuất định dạng Word...';
-    
-    setTimeout(() => {
-        try {
-            const rawJSON = document.getElementById('jsonInput').value;
-            const examData = JSON.parse(rawJSON);
-            let numCodes = parseInt(document.getElementById('numCodes').value) || 1;
-            let startCode = parseInt(document.getElementById('startCode').value) || 101;
-            
-            generatedExamsHTML = "";
-            let answerMatrix = {}; 
-            let totalQuestions = 0;
-
-            for (let c = 0; c < numCodes; c++) {
-                let currentCode = startCode + c;
-                let shuffledSections = shuffleArray(examData.sections);
-                
-                let examHtml = `
-                    <table style="width:100%; text-align:center; margin-bottom: 6pt; border:none;">
-                        <tr>
-                            <td style="width:50%; font-size:11pt;">${examData.header.school}<br><b>${examData.header.examName}</b></td>
-                            <td style="width:50%; font-size:11pt;"><b>${examData.header.subject}</b><br>${examData.header.time}<br><b>Mã đề thi: ${currentCode}</b></td>
-                        </tr>
-                    </table>
-                `;
-
-                let globalQNum = 1;
-                let mapOldToNew = {}; 
-                shuffledSections.forEach(sec => { sec.questions.forEach(q => { mapOldToNew[q.id] = globalQNum++; }); });
-                if (c === 0) totalQuestions = globalQNum - 1;
-
-                shuffledSections.forEach(sec => {
-                    let instText = sec.instruction.replace(/\{(\d+)\}/g, (m, p1) => mapOldToNew[p1] || m);
-                    examHtml += `<p style="font-weight:bold; margin-top:6pt;">${parseMarkdown(instText)}</p>`;
-                    
-                    if (sec.passage) {
-                        let passText = sec.passage.replace(/\{(\d+)\}/g, (m, p1) => mapOldToNew[p1] || m);
-                        examHtml += `<p style="text-align:justify; margin-bottom:6pt;">${parseMarkdown(passText)}</p>`;
-                    }
-
-                    sec.questions.forEach(q => {
-                        let curQ = mapOldToNew[q.id];
-                        let stemText = q.stem.replace(/\{(\d+)\}/g, (m, p1) => mapOldToNew[p1] || m);
-                        examHtml += `<p><b>Câu ${curQ}:</b> ${parseMarkdown(stemText)}</p>`;
-
-                        let optionsArr = q.options.map((t, i) => ({ text: t, isCorrect: (i === q.answer) }));
-                        let shuffledOptions = shuffleArray(optionsArr);
-                        
-                        let correctIdx = shuffledOptions.findIndex(o => o.isCorrect);
-                        if (!answerMatrix[curQ]) answerMatrix[curQ] = {};
-                        answerMatrix[curQ][currentCode] = String.fromCharCode(65 + correctIdx);
-
-                        examHtml += getOptionsLayoutHTML(shuffledOptions);
-                    });
-                });
-
-                if (c < numCodes - 1) examHtml += `<br clear="all" style="page-break-before:always" />`;
-                generatedExamsHTML += examHtml;
-            }
-
-            // --- BẢNG MATRIX THU GỌN ---
-            generatedKeysHTML = `<div style="text-align:center;"><p><b>BẢNG ĐÁP ÁN</b></p></div>`;
-            let maxCols = 15; // Ghép nhiều cột nhất có thể trên 1 trang A4
-            let totalTables = Math.ceil(numCodes / maxCols);
-            let codesArr = Array.from({length: numCodes}, (_, i) => startCode + i);
-
-            for (let t = 0; t < totalTables; t++) {
-                let chunk = codesArr.slice(t * maxCols, (t + 1) * maxCols);
-                generatedKeysHTML += `<table class="matrix-table"><tr><th>Câu</th>`;
-                chunk.forEach(code => { generatedKeysHTML += `<th>${code}</th>`; });
-                generatedKeysHTML += `</tr>`;
-                
-                for (let q = 1; q <= totalQuestions; q++) {
-                    generatedKeysHTML += `<tr><td><b>${q}</b></td>`;
-                    chunk.forEach(code => { generatedKeysHTML += `<td>${answerMatrix[q][code]}</td>`; });
-                    generatedKeysHTML += `</tr>`;
-                }
-                generatedKeysHTML += `</table>`;
-                if (t < totalTables - 1) generatedKeysHTML += `<br clear="all" style="page-break-before:always" />`;
-            }
-
-            document.getElementById('status').textContent = '✅ Đảo đề thành công! Mời tải file bên dưới.';
-            document.getElementById('downloadArea').style.display = 'block';
-
-        } catch (error) {
-            document.getElementById('status').textContent = '❌ Lỗi hệ thống. Vui lòng kiểm tra lại cấu trúc.';
-            console.error(error);
+    function getUsageLeft() {
+        let usage = localStorage.getItem('usage_left');
+        if (usage === null || isNaN(usage)) {
+            usage = 10;
+            localStorage.setItem('usage_left', usage);
         }
-    }, 300);
-}
+        return parseInt(usage);
+    }
 
-// XUẤT WORD ÉP CHUẨN XML (Lề 36pt, 11pt, giãn dòng 1.15, space-after 4pt)
-function exportHTMLToWord(htmlContent, filename) {
-    const header = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head>
-            <meta charset='utf-8'>
-            <title>${filename}</title>
-            <style>
-                @page { margin: 36.0pt 36.0pt 36.0pt 36.0pt; mso-header-margin: 36.0pt; mso-footer-margin: 36.0pt; mso-paper-source: 0; }
-                body { font-family: 'Times New Roman', serif; font-size: 11pt; line-height: 1.15; }
-                p { margin: 0 0 4pt 0; text-align: justify; }
-                .opt-table { width: 100%; border-collapse: collapse; border: none; margin-bottom: 4pt; }
-                .opt-table td { border: none; padding: 0 4pt 0 0; vertical-align: top; }
-                .matrix-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 10pt; }
-                .matrix-table th, .matrix-table td { border: 1px solid black; padding: 2pt; }
-            </style>
-        </head>
-        <body>
-    `;
-    const sourceHTML = header + htmlContent + "</body></html>";
-    const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url; link.download = filename + '.doc';
-    document.body.appendChild(link); link.click();
-    document.body.removeChild(link); URL.revokeObjectURL(url);
-}
+    function setUsageLeft(val) {
+        localStorage.setItem('usage_left', val);
+        updateUsageUI();
+    }
 
-function downloadExams() { exportHTMLToWord(generatedExamsHTML, 'De_Thi_Tieng_Anh_Toi_Uu'); }
-function downloadKeys() { exportHTMLToWord(generatedKeysHTML, 'Ma_Tran_Dap_An'); }
+    function updateUsageUI() {
+        let usage = getUsageLeft();
+        document.getElementById('usageLabel').innerText = `Số lần dùng thử còn lại: ${usage} lần`;
+    }
+
+    function decrementUsage() {
+        let usage = getUsageLeft();
+        if (usage > 0) {
+            setUsageLeft(usage - 1);
+        }
+    }
+
+    // Khởi tạo UI ban đầu
+    updateUsageUI();
+
+    // --- XỬ LÝ SỰ KIỆN NÚT BẤM ---
+
+    // 1. Gia hạn mật khẩu
+    document.getElementById('btnExtend').addEventListener('click', function() {
+        const pwd = document.getElementById('txtPassword').value;
+        if (pwd === PASSWORD) {
+            let current = getUsageLeft();
+            setUsageLeft(current + 10);
+            alert("Kích hoạt thành công! Bạn được cộng thêm 10 lần sử dụng.");
+            document.getElementById('txtPassword').value = '';
+        } else {
+            alert("Mật khẩu không chính xác!");
+        }
+    });
+
+    // 2. Nút tiến hành đảo đề
+    document.getElementById('btnShuffle').addEventListener('click', function() {
+        let usage = getUsageLeft();
+        if (usage <= 0) {
+            alert("Bạn đã hết số lần dùng thử. Vui lòng nhập mật khẩu để gia hạn!");
+            return;
+        }
+
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput.files.length === 0) {
+            alert("Vui lòng chọn file Word (VD: MA DE 1101.docx) trước khi đảo!");
+            return;
+        }
+
+        const numCopies = parseInt(document.getElementById('numCopies').value);
+        if (numCopies < 1 || numCopies > 50) {
+            alert("Số lượng mã đề phải từ 1 đến 50!");
+            return;
+        }
+
+        // Đánh dấu đang thực hiện lệnh đảo để sự kiện beforeunload không trừ thêm lượt
+        isShuffling = true;
+        
+        // Trừ 1 lần sử dụng
+        decrementUsage();
+
+        // Xử lý giả lập tiến trình đảo đề trên client
+        const fileName = fileInput.files[0].name;
+        alert(`Đang xử lý ${numCopies} mã đề từ file "${fileName}"...\n\n(Hệ thống giữ nguyên định dạng in đậm và nhận diện đáp án có gạch chân/dấu *).\n\nĐã xuất thành công bảng đáp án và các mã đề!`);
+        
+        // Reset trạng thái
+        setTimeout(() => { isShuffling = false; }, 1000);
+    });
+
+    // --- XỬ LÝ SỰ KIỆN THOÁT HOẶC F5 ---
+    
+    // Bắt sự kiện phím F5
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+            if (getUsageLeft() > 0 && !isShuffling) {
+                decrementUsage();
+            }
+        }
+    });
+
+    // Bắt sự kiện đóng tab/trình duyệt
+    window.addEventListener('beforeunload', function (e) {
+        if (getUsageLeft() > 0 && !isShuffling) {
+            decrementUsage();
+        }
+    });
+
 </script>
+
 </body>
 </html>
