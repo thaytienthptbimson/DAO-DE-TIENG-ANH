@@ -3,601 +3,804 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phần Mềm Đảo Đề Trắc Nghiệm Tiếng Anh</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-color: #f1f5f9;
-            --card-bg: #ffffff;
-            --border-color: #cbd5e1;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            line-height: 1.6;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header {
-            margin-bottom: 24px;
-            text-align: center;
-        }
-
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border-color);
-        }
-
-        .card-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        textarea {
-            width: 100%;
-            height: 500px;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            resize: vertical;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .btn {
-            display: inline-block;
-            width: 100%;
-            padding: 12px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-            transition: background-color 0.2s;
-        }
-
-        .btn:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn-print {
-            background-color: #10b981;
-            margin-top: 10px;
-        }
-
-        .btn-print:hover {
-            background-color: #059669;
-        }
-
-        /* Tabs styling */
-        .tabs-header {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
-            padding: 8px 16px;
-            background-color: #e2e8f0;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: 0.2s;
-        }
-
-        .tab-btn.active {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .tab-content {
-            display: none;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            min-height: 400px;
-            font-family: "Times New Roman", Times, serif;
-            font-size: 16px;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .question-block {
-            margin-bottom: 12px;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 6px;
-            margin-bottom: 12px;
-        }
-
-        .options-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
-        .options-grid.cols-1 { grid-template-columns: 1fr; }
-
-        .section-intro {
-            font-weight: bold;
-            margin-top: 24px;
-            margin-bottom: 12px;
-        }
-
-        /* Matrix Table */
-        .matrix-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 14px;
-        }
-
-        .matrix-table th, .matrix-table td {
-            border: 1px solid var(--border-color);
-            padding: 8px;
-            text-align: center;
-        }
-
-        .matrix-table th {
-            background-color: #f8fafc;
-        }
-
-        /* Print styles */
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-            .no-print {
-                display: none !important;
-            }
-            .tab-content {
-                box-shadow: none;
-                padding: 0;
-            }
-            .tab-content.active {
-                display: block;
-            }
-        }
-    </style>
+    <title>Phần Mềm Đảo Mã Đề Thi</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Pyodide for running Python in the browser -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <!-- JSZip and FileSaver for creating and downloading ZIP files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800 font-sans p-4 md:p-8">
 
-    <div class="container">
-        <div class="header no-print">
-            <h1>Phần Mềm Đảo Đề Thi Trắc Nghiệm Tiếng Anh</h1>
-            <p style="color: var(--text-muted)">Cấu trúc giữ nguyên thứ tự câu hỏi trong đoạn văn/bài đọc</p>
+<div class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-lg space-y-6">
+    <h1 class="text-3xl font-bold text-center text-blue-700">PHẦN MỀM ĐẢO MÃ ĐỀ THI (Bản Web)</h1>
+    <p class="text-center text-gray-600 text-sm">Chạy trực tiếp trên trình duyệt, không cần cài đặt. Code Python được chạy bằng Pyodide.</p>
+
+    <!-- 1) Nạp file -->
+    <div class="border border-gray-300 p-4 rounded bg-gray-50">
+        <h2 class="font-semibold text-lg mb-3">1) File đề gốc (.docx)</h2>
+        <div class="flex flex-col md:flex-row items-center gap-4">
+            <input type="file" id="fileInput" accept=".docx" class="flex-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none p-2" />
+            <button id="loadBtn" class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded transition shadow w-full md:w-auto">
+                Nạp & phân tích đề
+            </button>
         </div>
+    </div>
 
-        <div class="main-layout no-print">
-            <!-- Cột Trái: Nhập liệu -->
-            <div class="card">
-                <div class="card-title">1. Dán nội dung đề thi gốc</div>
-                <textarea id="rawInput" placeholder="Dán văn bản đề thi thô vào đây...
-Ví dụ:
-Mark the letter A, B, C or D...
-Question 1. Nội dung câu hỏi
-A. Đáp án 1   B. Đáp án 2   C. Đáp án 3   D. Đáp án 4"></textarea>
-            </div>
-
-            <!-- Cột Phải: Cấu hình -->
-            <div class="card">
-                <div class="card-title">2. Cấu hình đảo đề</div>
-                <div class="form-group">
-                    <label for="numCodes">Số lượng mã đề cần tạo:</label>
-                    <input type="number" id="numCodes" value="4" min="1" max="24">
-                </div>
-                <div class="form-group">
-                    <label for="startCode">Bắt đầu từ mã đề số:</label>
-                    <input type="number" id="startCode" value="101" min="1">
-                </div>
-                <button class="btn" id="btnShuffle" onclick="processAndShuffle()">Tiến hành đảo đề</button>
-                <button class="btn btn-print" onclick="window.print()">🖨️ In nội dung Tab hiện tại</button>
-            </div>
+    <!-- 2) Cấu hình phần -->
+    <div class="border border-gray-300 p-4 rounded bg-gray-50">
+        <h2 class="font-semibold text-lg mb-3">2) Chọn phần muốn đảo</h2>
+        <div id="partsContainer" class="overflow-y-auto max-h-72 border border-gray-300 bg-white rounded p-2 text-sm text-gray-500 text-center">
+            (Hãy nạp đề gốc trước)
         </div>
+    </div>
 
-        <!-- Khu vực hiển thị kết quả -->
-        <div id="resultsArea" style="display: none;">
-            <div class="tabs-header no-print" id="tabsHeader">
-                <!-- Các nút tab sẽ được sinh ra ở đây -->
+    <!-- 3) Xuất đề -->
+    <div class="border border-gray-300 p-4 rounded bg-gray-50">
+        <h2 class="font-semibold text-lg mb-3">3) Xuất mã đề</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <div class="flex items-center space-x-3">
+                <label class="font-medium whitespace-nowrap">Số mã đề cần tạo:</label>
+                <input type="number" id="numExams" value="4" min="1" max="50" class="border border-gray-300 rounded px-3 py-1 w-24" />
             </div>
-            <div id="tabsContainer">
-                <!-- Nội dung các tab (Đề thi & Ma trận) sẽ được sinh ra ở đây -->
+            <div class="flex items-center space-x-3">
+                <label class="font-medium whitespace-nowrap">Mã đề bắt đầu:</label>
+                <input type="number" id="startCode" value="101" class="border border-gray-300 rounded px-3 py-1 w-24" />
+            </div>
+            <div class="col-span-1 md:col-span-2">
+                <label class="flex items-center space-x-2 font-medium cursor-pointer">
+                    <input type="checkbox" id="insertHeader" checked class="w-4 h-4 text-blue-600 rounded" />
+                    <span>Chèn dòng 'Mã đề: ###' ở đầu mỗi đề</span>
+                </label>
             </div>
         </div>
     </div>
 
+    <!-- Action & Logs -->
+    <div class="flex flex-col md:flex-row items-center gap-4">
+        <button id="shuffleBtn" class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition w-full md:w-auto text-lg">
+            ĐẢO ĐỀ (TẢI VỀ ZIP)
+        </button>
+        <div id="trialStatus" class="text-sm font-semibold text-red-600 bg-red-50 px-4 py-2 rounded border border-red-200">
+            Đang tải dữ liệu...
+        </div>
+    </div>
+
+    <div>
+        <h3 class="font-semibold text-gray-700 mb-1">Trạng thái:</h3>
+        <textarea id="logArea" class="w-full h-40 border border-gray-300 rounded p-3 bg-gray-900 text-green-400 font-mono text-sm resize-y" readonly></textarea>
+    </div>
+</div>
+
+<!-- NÚNG CODE PYTHON GỐC VÀO ĐÂY (engine.py) -->
+<script type="text/python" id="engineCode">
+import re
+import copy
+import random
+from docx import Document
+from docx.oxml.ns import qn
+from docx.text.run import Run as _DocxRun
+
+QUESTION_RE = re.compile(r'Question\s+(\d+)\s*\.', re.IGNORECASE)
+FROM_TO_RE = re.compile(r'from\s+(\d+)\s+to\s+(\d+)', re.IGNORECASE)
+OPTION_START_RE = re.compile(r'^\s*([ABCD])\.\s')
+INLINE_OPTIONS_RE = re.compile(
+    r'(?P<A>A\.\s.*?)(?=\t?\s*B\.\s)\t?\s*'
+    r'(?P<B>B\.\s.*?)(?=\t?\s*C\.\s)\t?\s*'
+    r'(?P<C>C\.\s.*?)(?=\t?\s*D\.\s)\t?\s*'
+    r'(?P<D>D\.\s.*)$',
+    re.DOTALL
+)
+
+CIRCLED = {"A": "\u24B6", "B": "\u24B7", "C": "\u24B8", "D": "\u24B9"}  # Ⓐ Ⓑ Ⓒ Ⓓ
+
+def flatten_runs(paragraph):
+    spans = []
+    pos = [0]
+    def walk(el):
+        for child in el:
+            tag = child.tag
+            if tag == qn('w:r'):
+                run = _DocxRun(child, paragraph)
+                t = run.text
+                if t:
+                    spans.append((pos[0], pos[0] + len(t), run))
+                    pos[0] += len(t)
+            elif tag == qn('w:pPr'):
+                continue
+            else:
+                walk(child)
+    walk(paragraph._p)
+    return spans
+
+def para_text(paragraph):
+    return "".join(r.text for _s, _e, r in flatten_runs(paragraph))
+
+def slice_text_runs(spans, start, end):
+    out = []
+    for s, e, r in spans:
+        if e <= start or s >= end:
+            continue
+        seg_start = max(s, start)
+        seg_end = min(e, end)
+        text = r.text[seg_start - s: seg_end - s]
+        if text:
+            out.append((text, r))
+    return out
+
+def run_has_underline(run):
+    rpr = run._r.find(qn('w:rPr'))
+    if rpr is None:
+        return False
+    u = rpr.find(qn('w:u'))
+    if u is None:
+        return False
+    val = u.get(qn('w:val'))
+    return val not in (None, 'none', '0', 'false')
+
+def copy_rpr(new_run, source_run, strip_underline=False):
+    src_rpr = source_run._r.find(qn('w:rPr'))
+    if src_rpr is not None:
+        new_rpr = copy.deepcopy(src_rpr)
+        if strip_underline:
+            for u in list(new_rpr.findall(qn('w:u'))):
+                new_rpr.remove(u)
+        old = new_run._r.find(qn('w:rPr'))
+        if old is not None:
+            new_run._r.remove(old)
+        new_run._r.insert(0, new_rpr)
+
+def copy_ppr(new_paragraph, source_paragraph):
+    src_ppr = source_paragraph._p.find(qn('w:pPr'))
+    if src_ppr is not None:
+        new_ppr = copy.deepcopy(src_ppr)
+        old = new_paragraph._p.find(qn('w:pPr'))
+        if old is not None:
+            new_paragraph._p.remove(old)
+        new_paragraph._p.insert(0, new_ppr)
+
+class ParaSpec:
+    __slots__ = ("source_paragraph", "segments")
+    def __init__(self, source_paragraph, segments):
+        self.source_paragraph = source_paragraph
+        self.segments = segments
+
+class Option:
+    __slots__ = ("letter_orig", "segments", "is_correct")
+    def __init__(self, letter_orig, segments, is_correct):
+        self.letter_orig = letter_orig
+        self.segments = segments
+        self.is_correct = is_correct
+
+    def plain_text(self):
+        t = "".join(s[0] for s in self.segments)
+        return re.sub(r'^\s*[ABCD]\.\s*', '', t).strip()
+
+class QuestionBlock:
+    __slots__ = ("number", "stem_paragraphs", "options", "options_mode", "options_ppr_source")
+    def __init__(self, number):
+        self.number = number
+        self.stem_paragraphs = []
+        self.options = []
+        self.options_mode = None
+        self.options_ppr_source = None
+
+def _seg_slice(spans, a, b, number_span=None):
+    segments = []
+    if number_span and a <= number_span[0] and number_span[1] <= b:
+        ns, ne = number_span
+        if a < ns:
+            for t, r in slice_text_runs(spans, a, ns):
+                segments.append((t, r, False, False))
+        for t, r in slice_text_runs(spans, ns, ne):
+            segments.append((t, r, False, True))
+        if ne < b:
+            for t, r in slice_text_runs(spans, ne, b):
+                segments.append((t, r, False, False))
+    else:
+        for t, r in slice_text_runs(spans, a, b):
+            segments.append((t, r, False, False))
+    return segments
+
+def _make_para_spec(paragraph, a=0, b=None, number_span=None):
+    text = para_text(paragraph)
+    if b is None:
+        b = len(text)
+    spans = flatten_runs(paragraph)
+    segments = _seg_slice(spans, a, b, number_span)
+    return ParaSpec(paragraph, segments)
+
+def _mark_option_correctness(segments):
+    if not segments:
+        return segments, False
+    first_text, first_run, _su, _isn = segments[0]
+    is_correct = run_has_underline(first_run)
+    if is_correct:
+        segments = list(segments)
+        t, r, _su, isn = segments[0]
+        segments[0] = (t, r, True, isn)
+    return segments, is_correct
+
+def _extract_inline_options(paragraph, options_text_start):
+    text = para_text(paragraph)
+    spans = flatten_runs(paragraph)
+    sub = text[options_text_start:]
+    m = INLINE_OPTIONS_RE.search(sub)
+    if not m:
+        return None, None
+    options = []
+    for letter in "ABCD":
+        abs_start = options_text_start + m.start(letter)
+        abs_end = options_text_start + m.end(letter)
+        segs = _seg_slice(spans, abs_start, abs_end)
+        segs, is_correct = _mark_option_correctness(segs)
+        options.append(Option(letter, segs, is_correct))
+    stem_end_abs = options_text_start + m.start('A')
+    return options, stem_end_abs
+
+def _extract_separate_options(paragraphs4):
+    options = []
+    for letter, p in zip("ABCD", paragraphs4):
+        text = para_text(p)
+        spans = flatten_runs(p)
+        segs = _seg_slice(spans, 0, len(text))
+        segs, is_correct = _mark_option_correctness(segs)
+        options.append(Option(letter, segs, is_correct))
+    return options
+
+def parse_exam(docx_path):
+    doc = Document(docx_path)
+    paragraphs = doc.paragraphs
+    n = len(paragraphs)
+
+    marker_at = {}
+    marker_span_at = {}
+    for i, p in enumerate(paragraphs):
+        m = QUESTION_RE.search(para_text(p))
+        if m:
+            marker_at[i] = int(m.group(1))
+            marker_span_at[i] = m.span(1)
+
+    marker_indices = sorted(marker_at.keys())
+    prelude = []
+    questions = []
+    fillers_after = {}
+
+    first_marker_idx = marker_indices[0] if marker_indices else n
+    for i in range(0, first_marker_idx):
+        prelude.append(_make_para_spec(paragraphs[i]))
+
+    for mi_pos, idx in enumerate(marker_indices):
+        qnum = marker_at[idx]
+        num_span = marker_span_at[idx]
+        qb = QuestionBlock(qnum)
+        marker_para = paragraphs[idx]
+        marker_para_text = para_text(marker_para)
+        marker_m = QUESTION_RE.search(marker_para_text)
+        after_marker = marker_m.end()
+        next_marker_idx = marker_indices[mi_pos + 1] if mi_pos + 1 < len(marker_indices) else n
+
+        opts, stem_end_abs = _extract_inline_options(marker_para, after_marker)
+        cursor = idx + 1
+        if opts is not None:
+            qb.stem_paragraphs.append(_make_para_spec(marker_para, 0, stem_end_abs, num_span))
+            qb.options = opts
+            qb.options_mode = 'inline_with_marker'
+            qb.options_ppr_source = marker_para
+        else:
+            qb.stem_paragraphs.append(_make_para_spec(marker_para, 0, len(marker_para_text), num_span))
+            found_options = False
+            while cursor < next_marker_idx:
+                p = paragraphs[cursor]
+                text = para_text(p)
+                if OPTION_START_RE.match(text):
+                    m_inline = INLINE_OPTIONS_RE.search(text)
+                    if m_inline and m_inline.start('A') == 0:
+                        opts, _ = _extract_inline_options(p, 0)
+                        qb.options = opts
+                        qb.options_mode = 'same_line'
+                        qb.options_ppr_source = p
+                        cursor += 1
+                        found_options = True
+                        break
+                    m0 = OPTION_START_RE.match(text)
+                    if m0.group(1) == 'A' and cursor + 3 < next_marker_idx:
+                        p2, p3, p4 = paragraphs[cursor + 1], paragraphs[cursor + 2], paragraphs[cursor + 3]
+                        m1, m2, m3 = (OPTION_START_RE.match(para_text(p2)),
+                                      OPTION_START_RE.match(para_text(p3)),
+                                      OPTION_START_RE.match(para_text(p4)))
+                        if m1 and m1.group(1) == 'B' and m2 and m2.group(1) == 'C' and m3 and m3.group(1) == 'D':
+                            opts = _extract_separate_options([p, p2, p3, p4])
+                            qb.options = opts
+                            qb.options_mode = 'separate'
+                            qb.options_ppr_source = p
+                            cursor += 4
+                            found_options = True
+                            break
+                qb.stem_paragraphs.append(_make_para_spec(p))
+                cursor += 1
+            if not found_options:
+                qb.options = []
+                qb.options_mode = None
+
+        questions.append(qb)
+        fillers_after[qnum] = []
+        for i in range(cursor, next_marker_idx):
+            fillers_after[qnum].append(_make_para_spec(paragraphs[i]))
+
+    return {"doc_path": docx_path, "prelude": prelude, "questions": questions, "fillers_after": fillers_after}
+
+def detect_parts(parsed):
+    parts = []
+    texts = []
+
+    def spec_text(spec):
+        return "".join(seg[0] for seg in spec.segments)
+
+    for spec in parsed["prelude"]:
+        texts.append(spec_text(spec))
+    for qnum, specs in parsed["fillers_after"].items():
+        for spec in specs:
+            texts.append(spec_text(spec))
+
+    for text in texts:
+        m = FROM_TO_RE.search(text)
+        if m:
+            qf, qt = int(m.group(1)), int(m.group(2))
+            label = text.strip()
+            if len(label) > 90:
+                label = label[:87] + "..."
+            parts.append({"label": label, "q_from": qf, "q_to": qt, "is_cloze": False})
+
+    qmap = {q.number: q for q in parsed["questions"]}
+    for part in parts:
+        empties, total = 0, 0
+        for qn in range(part["q_from"], part["q_to"] + 1):
+            q = qmap.get(qn)
+            if q is None:
+                continue
+            total += 1
+            raw = "".join(seg[0] for sp in q.stem_paragraphs for seg in sp.segments)
+            stripped = QUESTION_RE.sub('', raw, count=1).strip()
+            if stripped == "":
+                empties += 1
+        if total and empties / total >= 0.5:
+            part["is_cloze"] = True
+
+    parts.sort(key=lambda x: x["q_from"])
+    return parts
+
+def shuffle_plan(parsed, parts, opts, rng=None):
+    if rng is None:
+        rng = random
+    qmap = {q.number: q for q in parsed["questions"]}
+    all_numbers = sorted(qmap.keys())
+    new_order = list(all_numbers)
+    option_perm = {}
+
+    for pi, part in enumerate(parts):
+        cfg = opts.get(pi, {})
+        qnums_in_part = [n for n in range(part["q_from"], part["q_to"] + 1) if n in qmap]
+
+        if cfg.get("shuffle_order") and not part["is_cloze"] and len(qnums_in_part) > 1:
+            positions = [all_numbers.index(n) for n in qnums_in_part]
+            shuffled_content = qnums_in_part[:]
+            rng.shuffle(shuffled_content)
+            for pos, content_qn in zip(positions, shuffled_content):
+                new_order[pos] = content_qn
+
+        if cfg.get("shuffle_options"):
+            for qn in qnums_in_part:
+                q = qmap[qn]
+                if len(q.options) == 4:
+                    order = [0, 1, 2, 3]
+                    rng.shuffle(order)
+                    option_perm[qn] = [q.options[i] for i in order]
+
+    for qn, q in qmap.items():
+        option_perm.setdefault(qn, list(q.options))
+
+    return new_order, option_perm
+
+def _copy_seg_run(paragraph, seg, new_number_str=None):
+    text, run, strip_u, is_number = seg
+    out_text = new_number_str if (is_number and new_number_str is not None) else text
+    r = paragraph.add_run(out_text)
+    copy_rpr(r, run, strip_underline=strip_u)
+    return r
+
+def _emit_plain_paragraph(doc, spec):
+    p = doc.add_paragraph()
+    copy_ppr(p, spec.source_paragraph)
+    for seg in spec.segments:
+        _copy_seg_run(p, seg)
+    return p
+
+_LEADING_LETTER_RE = re.compile(r'^(\s*)([ABCD])(\.)')
+
+def _relabel_first_char(seg, new_letter):
+    text, run, strip_u, is_number = seg
+    m = _LEADING_LETTER_RE.match(text)
+    if m:
+        text = text[:m.start(2)] + new_letter + text[m.end(2):]
+    return (text, run, strip_u, is_number)
+
+def _emit_option_run(paragraph, opt, new_letter, is_first_of_opt):
+    for j, seg in enumerate(opt.segments):
+        if j == 0 and is_first_of_opt:
+            seg = _relabel_first_char(seg, new_letter)
+        _copy_seg_run(paragraph, seg)
+
+def render_exam_docx(parsed, new_order, option_perm, number_str_map, out_path, header_line=None):
+    doc = Document(parsed["doc_path"])
+    body = doc.element.body
+    sect_prs = body.findall(qn('w:sectPr'))
+    for child in list(body):
+        if child.tag != qn('w:sectPr'):
+            body.remove(child)
+
+    if header_line:
+        p = doc.add_paragraph()
+        r = p.add_run(header_line)
+        r.bold = True
+
+    qmap = {q.number: q for q in parsed["questions"]}
+
+    for spec in parsed["prelude"]:
+        _emit_plain_paragraph(doc, spec)
+
+    for old_qn in new_order:
+        q = qmap[old_qn]
+        new_num_str = number_str_map[old_qn]
+        opts = option_perm[old_qn]
+
+        if q.options_mode == 'inline_with_marker':
+            p = doc.add_paragraph()
+            copy_ppr(p, q.stem_paragraphs[0].source_paragraph)
+            for seg in q.stem_paragraphs[0].segments:
+                _copy_seg_run(p, seg, new_num_str)
+            for i, opt in enumerate(opts):
+                if i > 0:
+                    tab_run = p.add_run("\t")
+                    copy_rpr(tab_run, opt.segments[0][1])
+                _emit_option_run(p, opt, "ABCD"[i], True)
+        else:
+            for sp in q.stem_paragraphs:
+                p = doc.add_paragraph()
+                copy_ppr(p, sp.source_paragraph)
+                for seg in sp.segments:
+                    _copy_seg_run(p, seg, new_num_str)
+
+            if q.options_mode == 'same_line':
+                p = doc.add_paragraph()
+                copy_ppr(p, q.options_ppr_source)
+                for i, opt in enumerate(opts):
+                    if i > 0:
+                        tab_run = p.add_run("\t")
+                        copy_rpr(tab_run, opt.segments[0][1])
+                    _emit_option_run(p, opt, "ABCD"[i], True)
+            elif q.options_mode == 'separate':
+                for i, opt in enumerate(opts):
+                    p = doc.add_paragraph()
+                    copy_ppr(p, q.options_ppr_source)
+                    _emit_option_run(p, opt, "ABCD"[i], True)
+
+        for spec in parsed["fillers_after"].get(old_qn, []):
+            _emit_plain_paragraph(doc, spec)
+
+    if sect_prs:
+        body.append(copy.deepcopy(sect_prs[-1]))
+    doc.save(out_path)
+
+def compute_answer_key(new_order, option_perm, number_str_map):
+    result = []
+    for old_qn in new_order:
+        opts = option_perm[old_qn]
+        correct_letter = None
+        for i, opt in enumerate(opts):
+            if opt.is_correct:
+                correct_letter = "ABCD"[i]
+                break
+        result.append((number_str_map[old_qn], correct_letter))
+    return result
+
+def build_answer_key_docx(all_keys, out_path):
+    doc = Document()
+    doc.add_heading("BẢNG ĐÁP ÁN", level=1)
+    for ma_de_label, keys in all_keys:
+        doc.add_heading(ma_de_label, level=2)
+        table = doc.add_table(rows=0, cols=10)
+        table.style = "Table Grid"
+        for i in range(0, len(keys), 10):
+            row_cells = table.add_row().cells
+            for j, (num_str, letter) in enumerate(keys[i:i + 10]):
+                shown = CIRCLED.get(letter, "?") if letter else "?"
+                row_cells[j].text = f"{num_str}. {shown}"
+    doc.save(out_path)
+
+GLOBAL_PARSED = None
+</script>
+
 <script>
-    /* =========================================================
-       1. CẤU TRÚC DỮ LIỆU (DATA STRUCTURES)
-       ========================================================= */
-    class Exam {
-        constructor() {
-            this.sections = [];
-        }
+    const logArea = document.getElementById('logArea');
+    const loadBtn = document.getElementById('loadBtn');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    let pyodide;
+    
+    // Config limit
+    const UNLOCK_PWD = "sonkiet20032013@";
+    const FREE_LIMIT = 10;
+    
+    function log(msg) {
+        logArea.value += msg + "\n";
+        logArea.scrollTop = logArea.scrollHeight;
+        console.log(msg);
     }
 
-    class Section {
-        constructor(intro) {
-            this.intro = intro; // Bao gồm câu lệnh (Mark the letter...) và đoạn văn (Passage)
-            this.questions = [];
-        }
+    function initTrial() {
+        if (!localStorage.getItem('dao_de_limit')) localStorage.setItem('dao_de_limit', FREE_LIMIT);
+        if (!localStorage.getItem('dao_de_used')) localStorage.setItem('dao_de_used', 0);
+        updateTrialUI();
     }
 
-    class Question {
-        constructor(originalNum, stem, options) {
-            this.originalNum = originalNum;
-            this.stem = stem;
-            this.options = options; // Mảng 4 chuỗi text tương ứng A, B, C, D gốc
-        }
+    function updateTrialUI() {
+        let limit = parseInt(localStorage.getItem('dao_de_limit'));
+        let used = parseInt(localStorage.getItem('dao_de_used'));
+        let rem = Math.max(0, limit - used);
+        document.getElementById('trialStatus').innerText = `Số lượt dùng thử còn lại: ${rem}`;
     }
 
-    // Biến lưu trữ dữ liệu đề gốc
-    let masterExamData = new Exam();
+    function consumeTrial() {
+        let used = parseInt(localStorage.getItem('dao_de_used'));
+        localStorage.setItem('dao_de_used', used + 1);
+        updateTrialUI();
+    }
 
-    /* =========================================================
-       2. THUẬT TOÁN BÓC TÁCH (PARSER) - PROMPT 2
-       ========================================================= */
-    function parseRawText(rawText) {
-        let lines = rawText.split('\n');
-        let exam = new Exam();
-        let currentSection = null;
-        let currentQuestion = null;
-        let parseMode = 'intro'; // 'intro', 'stem', 'options'
-
-        // Regex phát hiện bắt đầu một phần mới (Section)
-        const sectionRegex = /^(Mark the|Read the|Read following|Choose the|Indicate the)/i;
-        // Regex phát hiện bắt đầu câu hỏi mới
-        const questionRegex = /^Question\s+(\d+)\.(.*)/i;
-        // Regex phát hiện bắt đầu của dòng chứa đáp án A.
-        const optionStartRegex = /^[A-D]\.\s/i;
-
-        for (let i = 0; i < lines.length; i++) {
-            let line = lines[i].trim();
-            if (!line) continue;
-
-            // Kiểm tra xem có phải bắt đầu Section mới không
-            if (sectionRegex.test(line)) {
-                if (currentSection) exam.sections.push(currentSection);
-                currentSection = new Section(line + '\n');
-                parseMode = 'intro';
-                continue;
+    function checkTrial() {
+        let limit = parseInt(localStorage.getItem('dao_de_limit'));
+        let used = parseInt(localStorage.getItem('dao_de_used'));
+        if (limit - used <= 0) {
+            let pwd = prompt(`Bạn đã dùng hết ${limit} lượt dùng thử.\nNhập mật khẩu để được cộng thêm 10 lượt:`);
+            if (pwd === UNLOCK_PWD) {
+                localStorage.setItem('dao_de_limit', limit + 10);
+                updateTrialUI();
+                alert("Đã mở khóa thành công!");
+                return true;
+            } else if (pwd !== null) {
+                alert("Sai mật khẩu.");
+                return false;
             }
-
-            // Kiểm tra xem có phải bắt đầu Câu hỏi mới không
-            let qMatch = line.match(questionRegex);
-            if (qMatch) {
-                // Nếu chưa có section nào được tạo ra, tạo một section mặc định
-                if (!currentSection) {
-                    currentSection = new Section('');
-                }
-                currentQuestion = new Question(
-                    parseInt(qMatch[1]), 
-                    qMatch[2] + '\n', 
-                    []
-                );
-                currentQuestion.optionsRaw = ''; // Lưu tạm chuỗi chứa các đáp án
-                currentSection.questions.push(currentQuestion);
-                parseMode = 'stem';
-                continue;
-            }
-
-            // Kiểm tra dòng bắt đầu bằng A. B. C. D.
-            if (optionStartRegex.test(line) && currentQuestion) {
-                parseMode = 'options';
-            }
-
-            // Phân bổ nội dung vào các thuộc tính dựa trên parseMode
-            if (parseMode === 'intro' && currentSection) {
-                currentSection.intro += line + '\n';
-            } else if (parseMode === 'stem' && currentQuestion) {
-                currentQuestion.stem += line + '\n';
-            } else if (parseMode === 'options' && currentQuestion) {
-                currentQuestion.optionsRaw += line + ' ';
-            }
+            return false;
         }
-
-        if (currentSection) exam.sections.push(currentSection);
-
-        // Xử lý tách chuỗi `optionsRaw` thành mảng 4 đáp án A, B, C, D độc lập
-        exam.sections.forEach(sec => {
-            sec.questions.forEach(q => {
-                let optStr = q.optionsRaw;
-                // Regex thông minh để bắt nội dung theo từng đáp án
-                let aMatch = optStr.match(/A\.\s*(.*?)(?=B\.\s*|$)/i);
-                let bMatch = optStr.match(/B\.\s*(.*?)(?=C\.\s*|$)/i);
-                let cMatch = optStr.match(/C\.\s*(.*?)(?=D\.\s*|$)/i);
-                let dMatch = optStr.match(/D\.\s*(.*)/i);
-
-                q.options = [
-                    aMatch ? aMatch[1].trim() : "",
-                    bMatch ? bMatch[1].trim() : "",
-                    cMatch ? cMatch[1].trim() : "",
-                    dMatch ? dMatch[1].trim() : ""
-                ];
-            });
-        });
-
-        return exam;
+        return true;
     }
 
-    /* =========================================================
-       3. THUẬT TOÁN ĐẢO ĐỀ (SHUFFLER) - PROMPT 3
-       ========================================================= */
-    function shuffleArray(array) {
-        let newArr = [...array];
-        for (let i = newArr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+    async function initPyodideEnv() {
+        try {
+            loadBtn.disabled = true;
+            shuffleBtn.disabled = true;
+            log("⏳ Đang tải môi trường Python (Pyodide)... Có thể mất vài chục giây trong lần tải đầu tiên.");
+            
+            pyodide = await loadPyodide();
+            log("✅ Đã tải Pyodide. Đang cài đặt thư viện 'python-docx' (micropip)...");
+            
+            await pyodide.loadPackage("micropip");
+            const micropip = pyodide.pyimport("micropip");
+            await micropip.install('python-docx');
+            
+            log("✅ Đã cài đặt xong python-docx. Đang nạp engine xử lý...");
+            const pyCode = document.getElementById('engineCode').textContent;
+            await pyodide.runPythonAsync(pyCode);
+            
+            log("🚀 HỆ THỐNG SẴN SÀNG! Vui lòng chọn file đề gốc (.docx) để bắt đầu.");
+            loadBtn.disabled = false;
+        } catch(err) {
+            log("❌ Lỗi khởi tạo hệ thống: " + err);
         }
-        return newArr;
     }
 
-    function processAndShuffle() {
-        const rawText = document.getElementById('rawInput').value;
-        if (!rawText.trim()) {
-            alert("Vui lòng dán nội dung đề thi vào khung bên trái!");
+    // --- EVENTS ---
+    loadBtn.onclick = async () => {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        if (!file) {
+            alert("Vui lòng chọn file đề gốc (.docx) trước!");
             return;
         }
+        
+        loadBtn.disabled = true;
+        log(`\n⏳ Đang đọc file: ${file.name}...`);
+        try {
+            const buf = await file.arrayBuffer();
+            pyodide.FS.writeFile("input.docx", new Uint8Array(buf));
+            
+            log("⏳ Đang phân tích câu hỏi và các phần trong đề...");
+            const resJson = pyodide.runPython(`
+import json
+import traceback
 
-        // 1. Parsing dữ liệu
-        masterExamData = parseRawText(rawText);
-        if (masterExamData.sections.length === 0) {
-            alert("Không thể nhận diện cấu trúc đề. Vui lòng kiểm tra lại định dạng (Các phần bắt đầu bằng 'Mark the / Read the...', câu hỏi bắt đầu bằng 'Question X.').");
+try:
+    GLOBAL_PARSED = parse_exam("input.docx")
+    parts = detect_parts(GLOBAL_PARSED)
+    
+    if not parts:
+        parts = [{"label": "Toàn bộ đề (không tách được phần)", "q_from": 1,
+                  "q_to": max((q.number for q in GLOBAL_PARSED["questions"]), default=0),
+                  "is_cloze": False}]
+                  
+    res = json.dumps({"success": True, "parts": parts})
+except Exception as e:
+    res = json.dumps({"success": False, "error": str(e), "trace": traceback.format_exc()})
+res
+            `);
+            
+            const result = JSON.parse(resJson);
+            if (!result.success) {
+                log("❌ LỖI PHÂN TÍCH:\n" + result.error + "\n" + result.trace);
+                return;
+            }
+            
+            window.examParts = result.parts;
+            renderParts(result.parts);
+            log(`✅ Phân tích xong! Nhận diện được ${result.parts.length} phần.`);
+            shuffleBtn.disabled = false;
+        } catch (err) {
+            log("❌ Lỗi hệ thống khi nạp: " + err);
+        } finally {
+            loadBtn.disabled = false;
+        }
+    };
+
+    function renderParts(parts) {
+        const container = document.getElementById('partsContainer');
+        if (parts.length === 0) {
+            container.innerHTML = "Không tìm thấy phần nào.";
             return;
         }
-
-        const numCodes = parseInt(document.getElementById('numCodes').value);
-        const startCode = parseInt(document.getElementById('startCode').value);
-
-        let generatedExams = []; // Mảng chứa các mã đề đã tạo
-        
-        // 2. Tiến hành nhân bản và Đảo đề
-        for (let i = 0; i < numCodes; i++) {
-            let examCode = startCode + i;
-            
-            // Deep clone để không ảnh hưởng dữ liệu gốc
-            let cloneSections = JSON.parse(JSON.stringify(masterExamData.sections));
-            
-            // RÀNG BUỘC 2.2: Chỉ đảo vị trí của các "Phần thi" (Sections) với nhau.
-            let shuffledSections = shuffleArray(cloneSections);
-
-            let questionCounter = 1;
-            // Ánh xạ (Mapping) để cập nhật số thứ tự trên intro/passage và làm Ma trận
-            // Cấu trúc: mappingData[oldQNum] = { newQNum: X, optMap: { 'A': 'C', 'B': 'A', ... } }
-            let mappingData = {}; 
-
-            shuffledSections.forEach(sec => {
-                // RÀNG BUỘC 2.1: TUYỆT ĐỐI KHÔNG ĐƯỢC đảo vị trí các câu hỏi bên trong các phần.
-                // Do đó, ta duyệt mảng sec.questions theo thứ tự tuyến tính hiện tại
-                sec.questions.forEach(q => {
-                    let oldNum = q.originalNum;
-                    let newNum = questionCounter++;
-
-                    // RÀNG BUỘC 1: ĐƯỢC PHÉP đảo lộn vị trí 4 đáp án (A, B, C, D)
-                    // Lưu lại nhãn gốc để truy vết ma trận
-                    let optionsWithLabels = q.options.map((text, idx) => {
-                        return { text: text, oldLabel: String.fromCharCode(65 + idx) }; // 65 là mã ASCII của 'A'
-                    });
-
-                    let shuffledOptions = shuffleArray(optionsWithLabels);
-                    
-                    q.options = shuffledOptions.map(o => o.text);
-                    
-                    let optMap = {};
-                    shuffledOptions.forEach((o, idx) => {
-                        let newLabel = String.fromCharCode(65 + idx);
-                        optMap[o.oldLabel] = newLabel; // Ví dụ: Đáp án A gốc giờ biến thành nhãn mới nào
-                    });
-
-                    mappingData[oldNum] = { newQNum: newNum, optMap: optMap };
-                    q.newNum = newNum;
-                });
-            });
-
-            // Sau khi có mapping, quay lại update số đếm trong đoạn intro/passage
-            // RÀNG BUỘC 3: Tự động đánh lại số câu trong các lời dẫn
-            shuffledSections.forEach(sec => {
-                // Thay thế chuỗi dạng "from 1 to 5" -> "from [newStart] to [newEnd]"
-                sec.intro = sec.intro.replace(/(from\s+)(\d+)(\s+to\s+)(\d+)/gi, (match, p1, p2, p3, p4) => {
-                    let n1 = mappingData[parseInt(p2)] ? mappingData[parseInt(p2)].newQNum : p2;
-                    let n2 = mappingData[parseInt(p4)] ? mappingData[parseInt(p4)].newQNum : p4;
-                    return `${p1}${n1}${p3}${n2}`;
-                });
-
-                // Thay thế chuỗi dạng (6), [7], _______(8) trong bài điền từ
-                sec.intro = sec.intro.replace(/(\(|\[\vert{}\{)(\d+)(\)\vert{}\]|\})/g, (match, p1, p2, p3) => {
-                    let n = mappingData[parseInt(p2)] ? mappingData[parseInt(p2)].newQNum : p2;
-                    return `${p1}${n}${p3}`;
-                });
-            });
-
-            generatedExams.push({
-                code: examCode,
-                sections: shuffledSections,
-                mapping: mappingData
-            });
-        }
-
-        // 3. Render giao diện HTML
-        renderResults(generatedExams);
+        let html = `
+            <table class="w-full text-left border-collapse bg-white">
+                <thead class="bg-gray-100 sticky top-0 shadow-sm">
+                    <tr>
+                        <th class="p-2 border-b">Phần</th>
+                        <th class="p-2 border-b">Mô tả</th>
+                        <th class="p-2 border-b text-center">Xáo đáp án</th>
+                        <th class="p-2 border-b text-center">Xáo thứ tự câu</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        parts.forEach((p, i) => {
+            html += `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-2 font-medium">Câu ${p.q_from}-${p.q_to}</td>
+                    <td class="p-2 text-xs truncate max-w-xs" title="${p.label}">${p.label}</td>
+                    <td class="p-2 text-center">
+                        <input type="checkbox" id="opt_${i}" checked class="w-4 h-4 text-blue-600" />
+                    </td>
+                    <td class="p-2 text-center">
+                        <div class="flex items-center justify-center space-x-1">
+                            <input type="checkbox" id="ord_${i}" ${p.is_cloze ? 'disabled' : 'checked'} class="w-4 h-4 text-blue-600" />
+                            ${p.is_cloze ? '<span class="text-[10px] text-gray-400 italic">(điền khuyết)</span>' : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        html += `</tbody></table>`;
+        container.innerHTML = html;
+        container.classList.remove('text-center', 'text-gray-500');
     }
 
-    /* =========================================================
-       4. HIỂN THỊ KẾT QUẢ VÀ MA TRẬN
-       ========================================================= */
-    function renderResults(exams) {
-        document.getElementById('resultsArea').style.display = 'block';
-        const tabsHeader = document.getElementById('tabsHeader');
-        const tabsContainer = document.getElementById('tabsContainer');
-        
-        tabsHeader.innerHTML = '';
-        tabsContainer.innerHTML = '';
+    shuffleBtn.onclick = async () => {
+        if (!window.examParts) return;
+        if (!checkTrial()) return;
 
-        // Hàm tiện ích tạo giao diện 4 đáp án thông minh (tùy độ dài text)
-        function getOptionsHTML(optionsArr) {
-            let maxLen = Math.max(...optionsArr.map(o => o.length));
-            let gridClass = 'cols-4'; // Mặc định 4 cột
-            if (maxLen > 25 && maxLen <= 60) gridClass = 'cols-2'; // Chia 2 cột nếu dài vừa
-            else if (maxLen > 60) gridClass = 'cols-1'; // 1 cột nếu quá dài
+        shuffleBtn.disabled = true;
+        const numExams = parseInt(document.getElementById('numExams').value) || 4;
+        const startCode = parseInt(document.getElementById('startCode').value) || 101;
+        const insertHeader = document.getElementById('insertHeader').checked;
 
-            const labels = ['A', 'B', 'C', 'D'];
-            let html = `<div class="options-grid ${gridClass}">`;
-            optionsArr.forEach((opt, idx) => {
-                html += `<div><strong>${labels[idx]}.</strong> ${opt}</div>`;
-            });
-            html += `</div>`;
-            return html;
-        }
-
-        // Render từng tab Mã đề
-        exams.forEach((examData, index) => {
-            let tabBtn = document.createElement('button');
-            tabBtn.className = `tab-btn no-print ${index === 0 ? 'active' : ''}`;
-            tabBtn.innerText = `Mã đề ${examData.code}`;
-            tabBtn.onclick = () => switchTab(`tab_code_${examData.code}`, tabBtn);
-            tabsHeader.appendChild(tabBtn);
-
-            let tabContent = document.createElement('div');
-            tabContent.id = `tab_code_${examData.code}`;
-            tabContent.className = `tab-content ${index === 0 ? 'active' : ''}`;
-
-            let html = `<h2 style="text-align: center; margin-bottom: 20px;">ĐỀ THI TIẾNG ANH - MÃ ĐỀ: ${examData.code}</h2>`;
-
-            examData.sections.forEach(sec => {
-                // Hiển thị intro/passage (xử lý xuống dòng)
-                let introFormatted = sec.intro.replace(/\n/g, '<br/>');
-                html += `<div class="section-intro">${introFormatted}</div>`;
-
-                sec.questions.forEach(q => {
-                    html += `<div class="question-block">`;
-                    html += `<strong>Question ${q.newNum}.</strong> ${q.stem.replace(/\n/g, '<br/>')}`;
-                    html += getOptionsHTML(q.options);
-                    html += `</div>`;
-                });
-            });
-
-            tabContent.innerHTML = html;
-            tabsContainer.appendChild(tabContent);
+        // Thu thập cài đặt các phần
+        const opts = {};
+        window.examParts.forEach((p, i) => {
+            opts[i] = {
+                shuffle_options: document.getElementById(`opt_${i}`).checked,
+                shuffle_order: document.getElementById(`ord_${i}`).checked
+            };
         });
 
-        // Render tab Ma trận đáp án
-        let matrixBtn = document.createElement('button');
-        matrixBtn.className = `tab-btn no-print`;
-        matrixBtn.innerText = `Ma trận đáp án`;
-        matrixBtn.onclick = () => switchTab('tab_matrix', matrixBtn);
-        tabsHeader.appendChild(matrixBtn);
+        log(`\n⏳ Bắt đầu tạo ${numExams} mã đề (từ mã ${startCode})...`);
 
-        let matrixContent = document.createElement('div');
-        matrixContent.id = `tab_matrix`;
-        matrixContent.className = `tab-content`;
-        
-        let matrixHtml = `<h2 style="text-align: center; margin-bottom: 20px;">MA TRẬN DỊCH CHUYỂN ĐÁP ÁN</h2>`;
-        matrixHtml += `<p style="margin-bottom:15px; color:var(--text-muted);"><em>Hướng dẫn đọc: Cột hiển thị: "Gốc Q5 (A➡C, B➡D...)" nghĩa là Câu 5 gốc đã trở thành câu tương ứng ở dòng đó. Đáp án A gốc bị đảo thành C trong mã này.</em></p>`;
-        
-        matrixHtml += `<table class="matrix-table"><thead><tr>`;
-        matrixHtml += `<th>Mã đề / Câu mới</th>`;
-        
-        // Tìm số câu lớn nhất
-        let totalQuestions = 0;
-        exams[0].sections.forEach(sec => totalQuestions += sec.questions.length);
+        // Gửi tham số vào Pyodide
+        pyodide.globals.set("gui_opts", JSON.stringify(opts));
+        pyodide.globals.set("gui_numExams", numExams);
+        pyodide.globals.set("gui_startCode", startCode);
+        pyodide.globals.set("gui_insertHeader", insertHeader);
 
-        for (let i = 1; i <= totalQuestions; i++) {
-            matrixHtml += `<th>Câu ${i}</th>`;
-        }
-        matrixHtml += `</tr></thead><tbody>`;
+        try {
+            const outJson = pyodide.runPython(`
+import json
+import base64
+import os
+import random
+import traceback
 
-        exams.forEach(examData => {
-            matrixHtml += `<tr><td><strong>Mã ${examData.code}</strong></td>`;
-            for (let i = 1; i <= totalQuestions; i++) {
-                // Truy xuất mapping
-                let cellData = "";
-                for (let oldQ in examData.mapping) {
-                    if (examData.mapping[oldQ].newQNum === i) {
-                        let optMap = examData.mapping[oldQ].optMap;
-                        cellData = `Gốc Q${oldQ}<br>(A➡${optMap['A']}, B➡${optMap['B']}, C➡${optMap['C']}, D➡${optMap['D']})`;
-                        break;
-                    }
-                }
-                matrixHtml += `<td>${cellData}</td>`;
+try:
+    opts_dict = json.loads(gui_opts)
+    opts_dict = {int(k): v for k, v in opts_dict.items()}
+
+    num_exams = int(gui_numExams)
+    start_code = int(gui_startCode)
+    insert_header = bool(gui_insertHeader)
+
+    out_files = {}
+    all_keys = []
+    
+    if GLOBAL_PARSED is None:
+        raise ValueError("Chưa nạp đề gốc! GLOBAL_PARSED is None.")
+
+    parts = detect_parts(GLOBAL_PARSED)
+    if not parts:
+        parts = [{"label": "Toàn bộ đề (không tách được phần)", "q_from": 1,
+                  "q_to": max((q.number for q in GLOBAL_PARSED["questions"]), default=0),
+                  "is_cloze": False}]
+
+    for i in range(num_exams):
+        ma_de = str(start_code + i)
+        new_order, option_perm = shuffle_plan(GLOBAL_PARSED, parts, opts_dict, rng=random)
+        number_str_map = {old_qn: str(pos + 1) for pos, old_qn in enumerate(new_order)}
+        header_line = f"Mã đề: {ma_de}" if insert_header else None
+        
+        out_path = f"MaDe_{ma_de}.docx"
+        render_exam_docx(GLOBAL_PARSED, new_order, option_perm, number_str_map, out_path, header_line=header_line)
+        
+        keys = compute_answer_key(new_order, option_perm, number_str_map)
+        all_keys.append((f"Mã đề {ma_de}", keys))
+        
+        with open(out_path, "rb") as f:
+            out_files[out_path] = base64.b64encode(f.read()).decode('utf-8')
+
+    key_path = "BangDapAn.docx"
+    build_answer_key_docx(all_keys, key_path)
+    with open(key_path, "rb") as f:
+        out_files[key_path] = base64.b64encode(f.read()).decode('utf-8')
+
+    res_final = json.dumps({"success": True, "files": out_files})
+except Exception as e:
+    res_final = json.dumps({"success": False, "error": str(e), "trace": traceback.format_exc()})
+res_final
+            `);
+
+            const result = JSON.parse(outJson);
+            if (!result.success) {
+                log("❌ LỖI KHI ĐẢO ĐỀ:\n" + result.error + "\n" + result.trace);
+                return;
             }
-            matrixHtml += `</tr>`;
-        });
-        
-        matrixHtml += `</tbody></table>`;
-        matrixContent.innerHTML = matrixHtml;
-        tabsContainer.appendChild(matrixContent);
-    }
 
-    // Chuyển đổi tab
-    function switchTab(tabId, btnElement) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            log("✅ Tạo file hoàn tất! Đang nén thành thư mục ZIP...");
+            const zip = new JSZip();
+            for (const [filename, b64str] of Object.entries(result.files)) {
+                zip.file(filename, b64str, {base64: true});
+            }
 
-        document.getElementById(tabId).classList.add('active');
-        btnElement.classList.add('active');
-    }
+            const zipBlob = await zip.generateAsync({type: "blob"});
+            saveAs(zipBlob, `KetQua_DaoDe_${startCode}.zip`);
+            
+            log("🎉 Đã tải xuống file ZIP thành công!");
+            consumeTrial();
+
+        } catch (err) {
+            log("❌ Lỗi hệ thống trong quá trình đảo: " + err);
+        } finally {
+            shuffleBtn.disabled = false;
+        }
+    };
+
+    // Khởi động
+    initTrial();
+    initPyodideEnv();
 </script>
 
 </body>
