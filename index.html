@@ -9,13 +9,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: #10b981; 
-        }
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: #10b981;
-        }
+        .toggle-checkbox:checked { right: 0; border-color: #10b981; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -101,7 +96,7 @@
                             <span class="bg-blue-100 text-blue-700 w-7 h-7 rounded-full inline-flex items-center justify-center mr-2 text-sm">2</span>
                             Cấu Hình Xáo Trộn Chi Tiết
                         </h2>
-                        <div class="flex items-center p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
+                        <div class="flex flex-col p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
                             <label class="flex items-center space-x-3 cursor-pointer">
                                 <div class="relative">
                                     <input type="checkbox" id="cb-shuffle-parts" checked class="sr-only toggle-checkbox">
@@ -110,9 +105,9 @@
                                 </div>
                                 <div>
                                     <span class="font-bold text-indigo-900 text-sm">ĐẢO VỊ TRÍ CÁC KHỐI/PHẦN (TOÀN ĐỀ)</span>
-                                    <p class="text-xs text-indigo-700">Các phần sẽ hoán đổi vị trí ngẫu nhiên cho nhau (kèm theo lời dẫn).</p>
                                 </div>
                             </label>
+                            <p class="text-xs text-indigo-700 mt-2 pl-14">✓ Các phần sẽ hoán đổi vị trí ngẫu nhiên cho nhau.<br>✓ Tự động đồng bộ số thứ tự trong lời dẫn, đoạn văn điền khuyết khớp với số của câu hỏi mới.</p>
                         </div>
                     </div>
                     
@@ -382,7 +377,6 @@ def detect_parts(parsed):
             text = "".join(seg[0] for seg in spec.segments).strip()
             if not text: continue
             
-            # Ưu tiên nhận diện bằng số đếm "1. đến 10" hoặc "< ... >"
             m = PART_RE.search(text)
             if m:
                 flush_part(last_seen_q)
@@ -401,7 +395,6 @@ def detect_parts(parsed):
                     })
                 continue
                 
-            # Nếu không có số đếm rõ ràng, dựa vào định dạng IN ĐẬM
             bold_len = 0
             total_len = 0
             for seg_text, run, _, _ in spec.segments:
@@ -432,7 +425,6 @@ def detect_parts(parsed):
     
     final_parts = []
     covered = set()
-    # Loại bỏ các đoạn trùng lặp, ưu tiên các đoạn đã được định nghĩa bằng số đếm
     for part in sorted(parts, key=lambda x: (not x.get("from_regex"), x["q_from"])):
         q_range = set(range(part["q_from"], part["q_to"] + 1))
         if not q_range.intersection(covered):
@@ -483,7 +475,6 @@ def shuffle_plan(parsed, parts, opts, rng=None):
             text = "".join(seg[0] for seg in spec.segments)
             m = PART_RE.search(text)
             
-            # Logic check: xem có khớp Regex hoặc đoạn này có phải In Đậm chỉ dẫn không
             bold_len, total_len = 0, 0
             for seg_text, run, _, _ in spec.segments:
                 t = seg_text.strip()
@@ -538,18 +529,27 @@ def shuffle_plan(parsed, parts, opts, rng=None):
     number_str_map = {old_qn: str(pos + 1) for pos, old_qn in enumerate(new_order)}
     return global_header, blocks, option_perm, number_str_map, new_order
 
-def _copy_seg_run(paragraph, seg, new_number_str=None):
+
+# --- PHẦN HỖ TRỢ REPLACE SỐ THỨ TỰ THÔNG MINH TRONG RUNS ---
+def _copy_seg_run(paragraph, seg, new_number_str=None, text_mapping=None, mapping_regex=None):
     text, run, strip_u, is_number = seg
     out_text = new_number_str if (is_number and new_number_str is not None) else text
+    
+    if mapping_regex and out_text and not is_number:
+        # Thay thế các số thứ tự trong lời dẫn / đoạn văn sao cho khớp với cấu trúc mã đề mới
+        out_text = mapping_regex.sub(lambda m: text_mapping[m.group(1)], out_text)
+        
     r = paragraph.add_run(out_text)
     copy_rpr(r, run, strip_underline=strip_u)
     return r
 
-def _emit_plain_paragraph(doc, spec):
+def _emit_plain_paragraph(doc, spec, text_mapping=None, mapping_regex=None):
     p = doc.add_paragraph()
     copy_ppr(p, spec.source_paragraph)
-    for seg in spec.segments: _copy_seg_run(p, seg)
+    for seg in spec.segments: 
+        _copy_seg_run(p, seg, text_mapping=text_mapping, mapping_regex=mapping_regex)
     return p
+# -----------------------------------------------------------
 
 _LEADING_LETTER_RE = re.compile(r'^(\s*)([ABCD])(\.)')
 
@@ -577,10 +577,21 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
         r.bold = True
         
     qmap = {q.number: q for q in parsed["questions"]}
-    for spec in global_header: _emit_plain_paragraph(doc, spec)
+    for spec in global_header: 
+        _emit_plain_paragraph(doc, spec)
         
     for block in blocks:
-        for spec in block["specs_before"]: _emit_plain_paragraph(doc, spec)
+        # XÂY DỰNG BỘ MÁY ĐỒNG BỘ SỐ THỨ TỰ CHO RIÊNG KHỐI NÀY
+        block_mapping = {str(q): str(number_str_map[q]) for q in block["qnums"]}
+        # Sắp xếp key từ dài đến ngắn để tránh lỗi replace (ví dụ: '10' phải replace trước '1')
+        keys = sorted(block_mapping.keys(), key=len, reverse=True)
+        mapping_regex = re.compile(r'\b(' + '|'.join(keys) + r')\b') if keys else None
+
+        # Render lời dẫn khối / Đoạn văn trước câu hỏi
+        for spec in block["specs_before"]: 
+            _emit_plain_paragraph(doc, spec, text_mapping=block_mapping, mapping_regex=mapping_regex)
+            
+        # Render câu hỏi
         for old_qn in block["qnums"]:
             q = qmap[old_qn]
             new_num_str = number_str_map[old_qn]
@@ -589,7 +600,8 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
             if q.options_mode == 'inline_with_marker':
                 p = doc.add_paragraph()
                 copy_ppr(p, q.stem_paragraphs[0].source_paragraph)
-                for seg in q.stem_paragraphs[0].segments: _copy_seg_run(p, seg, new_num_str)
+                for seg in q.stem_paragraphs[0].segments: 
+                    _copy_seg_run(p, seg, new_number_str=new_num_str)
                 for i, opt in enumerate(opts):
                     if i > 0:
                         tab_run = p.add_run("\t")
@@ -599,7 +611,8 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
                 for sp in q.stem_paragraphs:
                     p = doc.add_paragraph()
                     copy_ppr(p, sp.source_paragraph)
-                    for seg in sp.segments: _copy_seg_run(p, seg, new_num_str)
+                    for seg in sp.segments: 
+                        _copy_seg_run(p, seg, new_number_str=new_num_str)
                 if q.options_mode == 'same_line':
                     p = doc.add_paragraph()
                     copy_ppr(p, q.options_ppr_source)
@@ -614,7 +627,9 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
                         copy_ppr(p, q.options_ppr_source)
                         _emit_option_run(p, opt, "ABCD"[i], True)
 
-            for spec in block["specs_internal"].get(old_qn, []): _emit_plain_paragraph(doc, spec)
+            # Render đoạn văn nội bộ (như passage điền khuyết nằm kẹp giữa)
+            for spec in block["specs_internal"].get(old_qn, []): 
+                _emit_plain_paragraph(doc, spec, text_mapping=block_mapping, mapping_regex=mapping_regex)
                 
     if sect_prs: body.append(copy.deepcopy(sect_prs[-1]))
     doc.save(out_path)
