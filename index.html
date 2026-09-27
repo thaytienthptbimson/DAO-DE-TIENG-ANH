@@ -8,11 +8,10 @@
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <!-- CSS cho Toggle Switch -->
     <style>
         .toggle-checkbox:checked {
             right: 0;
-            border-color: #10b981; /* Emerald 500 */
+            border-color: #10b981; 
         }
         .toggle-checkbox:checked + .toggle-label {
             background-color: #10b981;
@@ -20,11 +19,12 @@
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .toggle-checkbox:checked + .toggle-label + .toggle-dot { transform: translateX(100%); }
+        #cb-shuffle-parts:checked + .toggle-label + .toggle-dot { transform: translateX(120%); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
 
-    <!-- Header -->
     <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-10">
         <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -40,10 +40,7 @@
 
     <main class="max-w-7xl mx-auto px-6 py-8">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            <!-- Cột Trái: Upload & Xuất File (Giao diện điều khiển) -->
             <div class="lg:col-span-4 space-y-6">
-                <!-- Bước 1 -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
                         <span class="bg-indigo-100 text-indigo-700 w-7 h-7 rounded-full inline-flex items-center justify-center mr-2 text-sm">1</span>
@@ -62,7 +59,6 @@
                     </button>
                 </div>
 
-                <!-- Bước 3 -->
                 <div id="step3" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 opacity-50 pointer-events-none transition-opacity duration-300">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
                         <span class="bg-emerald-100 text-emerald-700 w-7 h-7 rounded-full inline-flex items-center justify-center mr-2 text-sm">3</span>
@@ -98,7 +94,6 @@
                 </div>
             </div>
 
-            <!-- Cột Phải: Bảng Cấu Hình Các Khối (Phần) -->
             <div class="lg:col-span-8">
                 <div id="step2" class="bg-white rounded-xl shadow-sm border border-slate-200 h-full flex flex-col opacity-50 pointer-events-none transition-opacity duration-300">
                     <div class="p-6 border-b border-slate-200 bg-slate-50 rounded-t-xl">
@@ -133,11 +128,6 @@
         </div>
     </main>
 
-<style>
-    .toggle-checkbox:checked + .toggle-label + .toggle-dot { transform: translateX(100%); }
-    #cb-shuffle-parts:checked + .toggle-label + .toggle-dot { transform: translateX(120%); }
-</style>
-
 <script type="text/plain" id="engine-py">
 import re
 import copy
@@ -147,8 +137,7 @@ from docx.oxml.ns import qn
 from docx.text.run import Run as _DocxRun
 
 QUESTION_RE = re.compile(r'Question\s+(\d+)\s*\.', re.IGNORECASE)
-# Regex tối ưu bắt chuẩn Tiếng Anh & Tiếng Việt (from X to Y, câu X đến Y...)
-PART_RE = re.compile(r'(?:from|câu(?: hỏi)?|questions?)\s*(\d+)\s*(?:to|-|đến)\s*(?:câu(?: hỏi)?|questions?)?\s*(\d+)', re.IGNORECASE)
+PART_RE = re.compile(r'(?:from|câu(?: hỏi)?|questions?)?\s*(\d+)\.?\s*(?:to|-|đến)\s*(?:câu(?: hỏi)?|questions?)?\s*(\d+)\.?', re.IGNORECASE)
 OPTION_START_RE = re.compile(r'^\s*([ABCD])\.\s')
 INLINE_OPTIONS_RE = re.compile(r'(?P<A>A\.\s.*?)(?=\t?\s*B\.\s)\t?\s*(?P<B>B\.\s.*?)(?=\t?\s*C\.\s)\t?\s*(?P<C>C\.\s.*?)(?=\t?\s*D\.\s)\t?\s*(?P<D>D\.\s.*)$', re.DOTALL)
 CIRCLED = {"A": "\u24B6", "B": "\u24B7", "C": "\u24B8", "D": "\u24B9"} 
@@ -362,25 +351,97 @@ def parse_exam(docx_path):
 
 def detect_parts(parsed):
     parts = []
-    texts = []
-    def spec_text(spec): return "".join(seg[0] for seg in spec.segments)
-    for spec in parsed["prelude"]: texts.append(spec_text(spec))
-    for qnum, specs in parsed["fillers_after"].items():
-        for spec in specs: texts.append(spec_text(spec))
-
-    for text in texts:
-        m = PART_RE.search(text)
-        if m:
-            qf, qt = int(m.group(1)), int(m.group(2))
-            # KIỂM TRA DẤU < > ĐỂ TỰ ĐỘNG KHÓA
-            has_explicit_lock = '<' in text and '>' in text
-            label = text.replace('<', '').replace('>', '').strip()
-            if len(label) > 100: label = label[:97] + "..."
-            parts.append({"label": label, "q_from": qf, "q_to": qt, "is_cloze": has_explicit_lock, "explicit_lock": has_explicit_lock})
-
     qmap = {q.number: q for q in parsed["questions"]}
-    for part in parts:
-        # Nếu chưa khóa bằng < >, kiểm tra xem có phải dạng điền khuyết không
+    all_qnums = sorted(qmap.keys())
+    
+    current_label = None
+    current_q_from = None
+    last_seen_q = None
+    has_explicit_lock = False
+    
+    def flush_part(q_to):
+        nonlocal current_label, current_q_from, has_explicit_lock
+        if current_label and current_q_from is not None and q_to is not None and current_q_from <= q_to:
+            label = current_label.replace('<', '').replace('>', '').strip()
+            if len(label) > 100: label = label[:97] + "..."
+            parts.append({
+                "label": label,
+                "q_from": current_q_from,
+                "q_to": q_to,
+                "is_cloze": has_explicit_lock,
+                "explicit_lock": has_explicit_lock,
+                "from_regex": False
+            })
+        current_label = None
+        current_q_from = None
+        has_explicit_lock = False
+
+    def process_specs(specs, next_qnum):
+        nonlocal current_label, current_q_from, has_explicit_lock
+        for spec in specs:
+            text = "".join(seg[0] for seg in spec.segments).strip()
+            if not text: continue
+            
+            # Ưu tiên nhận diện bằng số đếm "1. đến 10" hoặc "< ... >"
+            m = PART_RE.search(text)
+            if m:
+                flush_part(last_seen_q)
+                is_locked = '<' in text and '>' in text
+                qf, qt = int(m.group(1)), int(m.group(2))
+                label = text.replace('<', '').replace('>', '').strip()
+                if len(label) > 100: label = label[:97] + "..."
+                if qf <= qt:
+                    parts.append({
+                        "label": label,
+                        "q_from": qf,
+                        "q_to": qt,
+                        "is_cloze": is_locked,
+                        "explicit_lock": is_locked,
+                        "from_regex": True
+                    })
+                continue
+                
+            # Nếu không có số đếm rõ ràng, dựa vào định dạng IN ĐẬM
+            bold_len = 0
+            total_len = 0
+            for seg_text, run, _, _ in spec.segments:
+                t = seg_text.strip()
+                if not t: continue
+                total_len += len(t)
+                rpr = run._r.find(qn('w:rPr'))
+                if rpr is not None:
+                    b = rpr.find(qn('w:b'))
+                    if b is not None and b.get(qn('w:val')) not in ('0', 'false'):
+                        bold_len += len(t)
+                        
+            if total_len > 10 and (bold_len / total_len) > 0.5:
+                flush_part(last_seen_q)
+                current_label = text
+                has_explicit_lock = '<' in text and '>' in text
+                current_q_from = next_qnum
+
+    process_specs(parsed["prelude"], all_qnums[0] if all_qnums else None)
+    for qnum in all_qnums:
+        last_seen_q = qnum
+        if current_q_from is None and current_label is not None:
+            current_q_from = qnum
+        next_q = all_qnums[all_qnums.index(qnum)+1] if all_qnums.index(qnum)+1 < len(all_qnums) else None
+        process_specs(parsed.get("fillers_after", {}).get(qnum, []), next_q)
+        
+    flush_part(last_seen_q)
+    
+    final_parts = []
+    covered = set()
+    # Loại bỏ các đoạn trùng lặp, ưu tiên các đoạn đã được định nghĩa bằng số đếm
+    for part in sorted(parts, key=lambda x: (not x.get("from_regex"), x["q_from"])):
+        q_range = set(range(part["q_from"], part["q_to"] + 1))
+        if not q_range.intersection(covered):
+            final_parts.append(part)
+            covered.update(q_range)
+    
+    final_parts.sort(key=lambda x: x["q_from"])
+
+    for part in final_parts:
         if not part.get("explicit_lock"):
             empties, total = 0, 0
             for qn in range(part["q_from"], part["q_to"] + 1):
@@ -392,8 +453,7 @@ def detect_parts(parsed):
                 if stripped == "": empties += 1
             if total and empties / total >= 0.5: part["is_cloze"] = True
 
-    parts.sort(key=lambda x: x["q_from"])
-    return parts
+    return final_parts
 
 def shuffle_plan(parsed, parts, opts, rng=None):
     if rng is None: rng = random
@@ -422,7 +482,20 @@ def shuffle_plan(parsed, parts, opts, rng=None):
         for i, spec in enumerate(parsed["prelude"]):
             text = "".join(seg[0] for seg in spec.segments)
             m = PART_RE.search(text)
-            if m and m.group(1) == target_str:
+            
+            # Logic check: xem có khớp Regex hoặc đoạn này có phải In Đậm chỉ dẫn không
+            bold_len, total_len = 0, 0
+            for seg_text, run, _, _ in spec.segments:
+                t = seg_text.strip()
+                if not t: continue
+                total_len += len(t)
+                rpr = run._r.find(qn('w:rPr'))
+                if rpr is not None:
+                    b = rpr.find(qn('w:b'))
+                    if b is not None and b.get(qn('w:val')) not in ('0', 'false'): bold_len += len(t)
+            is_bold = (total_len > 10 and (bold_len / total_len) > 0.5)
+
+            if (m and m.group(1) == target_str) or (part_info.get("from_regex") == False and is_bold):
                 split_idx = i
                 break
                 
@@ -436,12 +509,10 @@ def shuffle_plan(parsed, parts, opts, rng=None):
                 else: block["specs_internal"][qn] = parsed["fillers_after"].get(qn, [])
             else: block["specs_internal"][qn] = parsed["fillers_after"].get(qn, [])
                 
-    # 1. Đảo vị trí các KHỐI
     shuffle_parts_globally = opts.get("shuffle_parts", False)
     if shuffle_parts_globally:
         rng.shuffle(blocks)
         
-    # 2. Xáo đáp án và câu hỏi bên trong khối
     option_perm = {}
     for qn, q in qmap.items(): option_perm[qn] = list(q.options)
         
@@ -458,7 +529,6 @@ def shuffle_plan(parsed, parts, opts, rng=None):
                         rng.shuffle(order)
                         option_perm[qn] = [qmap[qn].options[i] for i in order]
                         
-            # CẤM xáo trộn nếu bị khóa (is_cloze = True do < > hoặc tự động)
             if cfg.get("shuffle_order") and not part_info["is_cloze"] and len(block["qnums"]) > 1:
                 rng.shuffle(block["qnums"])
                 
@@ -693,7 +763,6 @@ def generate_shuffled(options_json):
         window.currentParts = parts;
         
         parts.forEach((part, index) => {
-            // Logic UI cho nhóm bị khóa
             let lockState = part.is_cloze;
             
             let lockIcon = lockState 
@@ -745,7 +814,7 @@ def generate_shuffled(options_json):
         const btn = document.getElementById('btn-shuffle');
         const originalText = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ĐANG TẠO MÃ ĐỀ...`;
+        btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ĐANG TẠO MĐ...`;
         
         try {
             let opts = {
@@ -763,8 +832,6 @@ def generate_shuffled(options_json):
             });
             
             const optsJson = JSON.stringify(opts);
-            
-            // Allow UI to update before running heavy python block
             await new Promise(r => setTimeout(r, 100)); 
             
             const resultStr = window.pyodide.runPython(`generate_shuffled('${optsJson}')`);
