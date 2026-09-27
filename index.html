@@ -3,63 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PHẦN MỀM ĐẢO ĐỀ CHUYÊN DÙNG CHO MÔN TIẾNG ANH TN LỚP 12</title>
+    <title>Hệ Thống Đảo Đề Thi Khoa Học - Chạy Trực Tiếp</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- CSS cho Toggle Switch -->
+    <style>
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #10b981; /* Emerald 500 */
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #10b981;
+        }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
 </head>
-<body class="bg-gray-100 text-gray-800 p-6 min-h-screen">
-    <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-lg p-8">
-        <h1 class="text-2xl font-bold text-center text-blue-600 mb-2">PHẦN MỀM ĐẢO MÃ ĐỀ THI (.DOCX)</h1>
-        <p class="text-center text-gray-500 text-sm mb-6">Xử lý khối nâng cao: Đảo phần đi kèm lời dẫn - Giữ chặt câu hỏi trong phần.</p>
-        
-        <div id="system-status-box" class="bg-yellow-50 border border-yellow-200 p-4 rounded mb-6 flex items-center space-x-3">
-            <svg class="animate-spin h-5 w-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span id="system-status-text" class="text-yellow-700 font-medium">Hệ thống đang tải lõi Python...</span>
-        </div>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
 
-        <!-- BƯỚC 1 -->
-        <div class="mb-8">
-            <h2 class="text-lg font-semibold border-b pb-2 mb-4 text-indigo-700">1) Chọn File Đề Gốc (.docx)</h2>
-            <div class="flex items-center space-x-4">
-                <input type="file" id="docx-file" accept=".docx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                <button id="btn-analyze" onclick="analyzeFile()" disabled class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">Nạp & Phân Tích</button>
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Hệ Thống Đảo Mã Đề <span class="text-indigo-600">Pro</span></h1>
+            </div>
+            <div id="system-status" class="flex items-center px-4 py-2 rounded-full bg-yellow-100 text-yellow-700 text-sm font-semibold shadow-inner">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-yellow-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Đang khởi tạo lõi Python...
             </div>
         </div>
+    </header>
 
-        <!-- BƯỚC 2 -->
-        <div class="mb-8 hidden" id="step2">
-            <h2 class="text-lg font-semibold border-b pb-2 mb-4 text-indigo-700">2) Tuỳ Chọn Đảo Khối / Phần</h2>
-            <div id="parts-container" class="bg-white border rounded shadow-sm">
-            </div>
-        </div>
-
-        <!-- BƯỚC 3 -->
-        <div class="mb-6 hidden" id="step3">
-            <h2 class="text-lg font-semibold border-b pb-2 mb-4 text-indigo-700">3) Xuất Mã Đề</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Số mã đề cần tạo (Max 50):</label>
-                    <input type="number" id="num-made" value="4" min="1" max="50" class="border rounded p-2 w-full">
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Cột Trái: Upload & Xuất File (Giao diện điều khiển) -->
+            <div class="lg:col-span-4 space-y-6">
+                <!-- Bước 1 -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
+                        <span class="bg-indigo-100 text-indigo-700 w-7 h-7 rounded-full inline-flex items-center justify-center mr-2 text-sm">1</span>
+                        Nạp Đề Gốc (.docx)
+                    </h2>
+                    
+                    <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 transition relative">
+                        <input type="file" id="docx-file" accept=".docx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFileSelect(this)">
+                        <svg class="mx-auto h-10 w-10 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <p class="text-sm font-medium text-slate-600" id="file-name-display">Kéo thả file hoặc click để chọn</p>
+                    </div>
+                    
+                    <button id="btn-analyze" onclick="analyzeFile()" disabled class="mt-4 w-full bg-indigo-600 text-white font-semibold py-2.5 rounded-lg shadow hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex justify-center items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                        Phân Tích Đề
+                    </button>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Mã đề bắt đầu:</label>
-                    <input type="number" id="start-code" value="101" class="border rounded p-2 w-full">
+
+                <!-- Bước 3 -->
+                <div id="step3" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 opacity-50 pointer-events-none transition-opacity duration-300">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
+                        <span class="bg-emerald-100 text-emerald-700 w-7 h-7 rounded-full inline-flex items-center justify-center mr-2 text-sm">3</span>
+                        Cấu Hình Xuất File
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label class="text-sm font-medium text-slate-700">Số lượng mã đề:</label>
+                            <input type="number" id="num-made" value="4" min="1" max="50" class="border border-slate-300 rounded-md p-1.5 w-20 text-center focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-sm font-medium text-slate-700">Mã đề bắt đầu:</label>
+                            <input type="number" id="start-code" value="101" class="border border-slate-300 rounded-md p-1.5 w-20 text-center focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                        </div>
+                        
+                        <div class="pt-2 border-t border-slate-100">
+                            <label class="flex items-center space-x-3 cursor-pointer mt-2">
+                                <div class="relative">
+                                    <input type="checkbox" id="insert-header" checked class="sr-only toggle-checkbox">
+                                    <div class="block bg-slate-200 w-10 h-6 rounded-full toggle-label transition"></div>
+                                    <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform toggle-dot"></div>
+                                </div>
+                                <span class="text-sm font-medium text-slate-700">Chèn dòng "Mã đề: ###"</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button id="btn-shuffle" onclick="shuffleAndExport()" class="mt-6 w-full bg-emerald-600 text-white font-bold py-3 rounded-lg shadow-lg hover:bg-emerald-700 transition flex justify-center items-center text-sm">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        TẠO ĐỀ & TẢI XUỐNG (.ZIP)
+                    </button>
                 </div>
             </div>
-            <div class="mb-6">
-                <label class="flex items-center space-x-2">
-                    <input type="checkbox" id="insert-header" checked class="form-checkbox text-blue-600">
-                    <span class="text-sm font-medium text-gray-700">Tự động chèn dòng 'Mã đề: ###' ở đầu mỗi đề</span>
-                </label>
+
+            <!-- Cột Phải: Bảng Cấu Hình Các Khối (Phần) -->
+            <div class="lg:col-span-8">
+                <div id="step2" class="bg-white rounded-xl shadow-sm border border-slate-200 h-full flex flex-col opacity-50 pointer-events-none transition-opacity duration-300">
+                    <div class="p-6 border-b border-slate-200 bg-slate-50 rounded-t-xl">
+                        <h2 class="text-lg font-bold text-slate-800 flex items-center mb-2">
+                            <span class="bg-blue-100 text-blue-700 w-7 h-7 rounded-full inline-flex items-center justify-center mr-2 text-sm">2</span>
+                            Cấu Hình Xáo Trộn Chi Tiết
+                        </h2>
+                        <div class="flex items-center p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" id="cb-shuffle-parts" checked class="sr-only toggle-checkbox">
+                                    <div class="block bg-slate-300 w-12 h-7 rounded-full toggle-label transition"></div>
+                                    <div class="dot absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition transform toggle-dot"></div>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-indigo-900 text-sm">ĐẢO VỊ TRÍ CÁC KHỐI/PHẦN (TOÀN ĐỀ)</span>
+                                    <p class="text-xs text-indigo-700">Các phần sẽ hoán đổi vị trí ngẫu nhiên cho nhau (kèm theo lời dẫn).</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="parts-container" class="p-4 overflow-y-auto custom-scroll flex-1 max-h-[500px]">
+                        <div class="flex h-full items-center justify-center text-slate-400 text-sm flex-col space-y-2">
+                            <svg class="w-12 h-12 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            <p>Vui lòng nạp và phân tích đề gốc để hiển thị các phần.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button id="btn-shuffle" onclick="shuffleAndExport()" class="w-full bg-green-600 text-white font-bold text-lg px-4 py-3 rounded shadow hover:bg-green-700">BẮT ĐẦU ĐẢO ĐỀ VÀ TẢI XUỐNG (.ZIP)</button>
+
         </div>
-    </div>
+    </main>
+
+<style>
+    .toggle-checkbox:checked + .toggle-label + .toggle-dot { transform: translateX(100%); }
+    #cb-shuffle-parts:checked + .toggle-label + .toggle-dot { transform: translateX(120%); }
+</style>
 
 <script type="text/plain" id="engine-py">
 import re
@@ -70,15 +147,10 @@ from docx.oxml.ns import qn
 from docx.text.run import Run as _DocxRun
 
 QUESTION_RE = re.compile(r'Question\s+(\d+)\s*\.', re.IGNORECASE)
-FROM_TO_RE = re.compile(r'from\s+(\d+)\s+to\s+(\d+)', re.IGNORECASE)
+# Regex tối ưu bắt chuẩn Tiếng Anh & Tiếng Việt (from X to Y, câu X đến Y...)
+PART_RE = re.compile(r'(?:from|câu(?: hỏi)?|questions?)\s*(\d+)\s*(?:to|-|đến)\s*(?:câu(?: hỏi)?|questions?)?\s*(\d+)', re.IGNORECASE)
 OPTION_START_RE = re.compile(r'^\s*([ABCD])\.\s')
-INLINE_OPTIONS_RE = re.compile(
-    r'(?P<A>A\.\s.*?)(?=\t?\s*B\.\s)\t?\s*'
-    r'(?P<B>B\.\s.*?)(?=\t?\s*C\.\s)\t?\s*'
-    r'(?P<C>C\.\s.*?)(?=\t?\s*D\.\s)\t?\s*'
-    r'(?P<D>D\.\s.*)$',
-    re.DOTALL
-)
+INLINE_OPTIONS_RE = re.compile(r'(?P<A>A\.\s.*?)(?=\t?\s*B\.\s)\t?\s*(?P<B>B\.\s.*?)(?=\t?\s*C\.\s)\t?\s*(?P<C>C\.\s.*?)(?=\t?\s*D\.\s)\t?\s*(?P<D>D\.\s.*)$', re.DOTALL)
 CIRCLED = {"A": "\u24B6", "B": "\u24B7", "C": "\u24B8", "D": "\u24B9"} 
 
 def flatten_runs(paragraph):
@@ -297,24 +369,28 @@ def detect_parts(parsed):
         for spec in specs: texts.append(spec_text(spec))
 
     for text in texts:
-        m = FROM_TO_RE.search(text)
+        m = PART_RE.search(text)
         if m:
             qf, qt = int(m.group(1)), int(m.group(2))
-            label = text.strip()
-            if len(label) > 90: label = label[:87] + "..."
-            parts.append({"label": label, "q_from": qf, "q_to": qt, "is_cloze": False})
+            # KIỂM TRA DẤU < > ĐỂ TỰ ĐỘNG KHÓA
+            has_explicit_lock = '<' in text and '>' in text
+            label = text.replace('<', '').replace('>', '').strip()
+            if len(label) > 100: label = label[:97] + "..."
+            parts.append({"label": label, "q_from": qf, "q_to": qt, "is_cloze": has_explicit_lock, "explicit_lock": has_explicit_lock})
 
     qmap = {q.number: q for q in parsed["questions"]}
     for part in parts:
-        empties, total = 0, 0
-        for qn in range(part["q_from"], part["q_to"] + 1):
-            q = qmap.get(qn)
-            if q is None: continue
-            total += 1
-            raw = "".join(seg[0] for sp in q.stem_paragraphs for seg in sp.segments)
-            stripped = QUESTION_RE.sub('', raw, count=1).strip()
-            if stripped == "": empties += 1
-        if total and empties / total >= 0.5: part["is_cloze"] = True
+        # Nếu chưa khóa bằng < >, kiểm tra xem có phải dạng điền khuyết không
+        if not part.get("explicit_lock"):
+            empties, total = 0, 0
+            for qn in range(part["q_from"], part["q_to"] + 1):
+                q = qmap.get(qn)
+                if q is None: continue
+                total += 1
+                raw = "".join(seg[0] for sp in q.stem_paragraphs for seg in sp.segments)
+                stripped = QUESTION_RE.sub('', raw, count=1).strip()
+                if stripped == "": empties += 1
+            if total and empties / total >= 0.5: part["is_cloze"] = True
 
     parts.sort(key=lambda x: x["q_from"])
     return parts
@@ -324,62 +400,50 @@ def shuffle_plan(parsed, parts, opts, rng=None):
     qmap = {q.number: q for q in parsed["questions"]}
     all_numbers = sorted(qmap.keys())
     
-    # 1. Map questions to parts
     q_to_part = {}
     for pi, part in enumerate(parts):
         for qn in range(part["q_from"], part["q_to"] + 1):
             q_to_part[qn] = pi
             
-    # 2. Build strict blocks (Lời dẫn đi kèm câu hỏi)
     blocks = []
     current_block = None
     for qn in all_numbers:
         p = q_to_part.get(qn)
         if current_block is None or current_block["part_idx"] != p:
-            if current_block is not None:
-                blocks.append(current_block)
+            if current_block is not None: blocks.append(current_block)
             current_block = {"part_idx": p, "qnums": [], "specs_before": [], "specs_internal": {}}
         current_block["qnums"].append(qn)
-    if current_block is not None:
-        blocks.append(current_block)
+    if current_block is not None: blocks.append(current_block)
         
-    # 3. Tách Header Chung vs Lời Dẫn Phần 1
     split_idx = len(parsed["prelude"])
     if blocks and blocks[0]["part_idx"] is not None:
         part_info = parts[blocks[0]["part_idx"]]
         target_str = str(part_info["q_from"])
         for i, spec in enumerate(parsed["prelude"]):
             text = "".join(seg[0] for seg in spec.segments)
-            m = FROM_TO_RE.search(text)
+            m = PART_RE.search(text)
             if m and m.group(1) == target_str:
                 split_idx = i
                 break
                 
     global_header = parsed["prelude"][:split_idx]
-    if blocks:
-        blocks[0]["specs_before"].extend(parsed["prelude"][split_idx:])
+    if blocks: blocks[0]["specs_before"].extend(parsed["prelude"][split_idx:])
         
-    # Phân bổ Fillers
     for i, block in enumerate(blocks):
         for j, qn in enumerate(block["qnums"]):
-            if j == len(block["qnums"]) - 1: # Câu cuối của Block
-                if i + 1 < len(blocks):
-                    # Lời dẫn của phần tiếp theo
-                    blocks[i + 1]["specs_before"].extend(parsed["fillers_after"].get(qn, []))
-                else:
-                    block["specs_internal"][qn] = parsed["fillers_after"].get(qn, [])
-            else:
-                block["specs_internal"][qn] = parsed["fillers_after"].get(qn, [])
+            if j == len(block["qnums"]) - 1: 
+                if i + 1 < len(blocks): blocks[i + 1]["specs_before"].extend(parsed["fillers_after"].get(qn, []))
+                else: block["specs_internal"][qn] = parsed["fillers_after"].get(qn, [])
+            else: block["specs_internal"][qn] = parsed["fillers_after"].get(qn, [])
                 
-    # 4. Đảo Khối / Phần (Giữ nguyên cấu trúc khối)
+    # 1. Đảo vị trí các KHỐI
     shuffle_parts_globally = opts.get("shuffle_parts", False)
     if shuffle_parts_globally:
         rng.shuffle(blocks)
         
-    # 5. Xáo trộn Options & Thứ tự câu trong bộ phận
+    # 2. Xáo đáp án và câu hỏi bên trong khối
     option_perm = {}
-    for qn, q in qmap.items():
-        option_perm[qn] = list(q.options)
+    for qn, q in qmap.items(): option_perm[qn] = list(q.options)
         
     for block in blocks:
         p_idx = block["part_idx"]
@@ -387,7 +451,6 @@ def shuffle_plan(parsed, parts, opts, rng=None):
             cfg = opts.get(p_idx, {})
             part_info = parts[p_idx]
             
-            # Xáo Options
             if cfg.get("shuffle_options"):
                 for qn in block["qnums"]:
                     if qn in qmap and len(qmap[qn].options) == 4:
@@ -395,17 +458,14 @@ def shuffle_plan(parsed, parts, opts, rng=None):
                         rng.shuffle(order)
                         option_perm[qn] = [qmap[qn].options[i] for i in order]
                         
-            # Xáo thứ tự câu (Câu chỉ đảo trong vòng Block này)
+            # CẤM xáo trộn nếu bị khóa (is_cloze = True do < > hoặc tự động)
             if cfg.get("shuffle_order") and not part_info["is_cloze"] and len(block["qnums"]) > 1:
                 rng.shuffle(block["qnums"])
                 
-    # 6. Gom trật tự mới
     new_order = []
-    for block in blocks:
-        new_order.extend(block["qnums"])
+    for block in blocks: new_order.extend(block["qnums"])
         
     number_str_map = {old_qn: str(pos + 1) for pos, old_qn in enumerate(new_order)}
-    
     return global_header, blocks, option_perm, number_str_map, new_order
 
 def _copy_seg_run(paragraph, seg, new_number_str=None):
@@ -447,16 +507,10 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
         r.bold = True
         
     qmap = {q.number: q for q in parsed["questions"]}
-    
-    # 1. Vẽ Global Header
-    for spec in global_header: 
-        _emit_plain_paragraph(doc, spec)
+    for spec in global_header: _emit_plain_paragraph(doc, spec)
         
-    # 2. Vẽ từng Block (Lời dẫn kèm câu hỏi)
     for block in blocks:
-        for spec in block["specs_before"]: 
-            _emit_plain_paragraph(doc, spec)
-            
+        for spec in block["specs_before"]: _emit_plain_paragraph(doc, spec)
         for old_qn in block["qnums"]:
             q = qmap[old_qn]
             new_num_str = number_str_map[old_qn]
@@ -490,9 +544,7 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
                         copy_ppr(p, q.options_ppr_source)
                         _emit_option_run(p, opt, "ABCD"[i], True)
 
-            # Filler riêng biệt cho câu (Ví dụ ảnh đính kèm theo Q6)
-            for spec in block["specs_internal"].get(old_qn, []):
-                _emit_plain_paragraph(doc, spec)
+            for spec in block["specs_internal"].get(old_qn, []): _emit_plain_paragraph(doc, spec)
                 
     if sect_prs: body.append(copy.deepcopy(sect_prs[-1]))
     doc.save(out_path)
@@ -503,9 +555,7 @@ def compute_answer_key(new_order, option_perm, number_str_map):
         opts = option_perm[old_qn]
         correct_letter = None
         for i, opt in enumerate(opts):
-            if opt.is_correct:
-                correct_letter = "ABCD"[i]
-                break
+            if opt.is_correct: correct_letter = "ABCD"[i]; break
         result.append((number_str_map[old_qn], correct_letter))
     return result
 
@@ -525,12 +575,7 @@ def build_answer_key_docx(all_keys, out_path):
 </script>
 
 <script type="text/plain" id="wrapper-py">
-import io
-import sys
-import json
-import base64
-import random
-import types
+import io, sys, json, base64, random, types
 engine_code = open('/engine_source.py').read()
 engine_module = types.ModuleType('engine')
 exec(engine_code, engine_module.__dict__)
@@ -543,9 +588,7 @@ G_PARTS = None
 def parse_docx(base64_data):
     global G_PARSED, G_PARTS
     file_bytes = base64.b64decode(base64_data)
-    with open('/input.docx', 'wb') as f:
-        f.write(file_bytes)
-    
+    with open('/input.docx', 'wb') as f: f.write(file_bytes)
     G_PARSED = engine.parse_exam('/input.docx')
     G_PARTS = engine.detect_parts(G_PARSED)
     return json.dumps(G_PARTS)
@@ -567,12 +610,9 @@ def generate_shuffled(options_json):
     for i in range(num_ma_de):
         ma_de = str(start_code + i)
         global_header, blocks, option_perm, number_str_map, new_order = engine.shuffle_plan(G_PARSED, G_PARTS, py_opts, rng=random)
-        
         header_line = f"Mã đề: {ma_de}" if insert_header else None
         out_path = f"/MaDe_{ma_de}.docx"
-        
         engine.render_exam_docx(G_PARSED, global_header, blocks, option_perm, number_str_map, out_path, header_line=header_line)
-        
         keys = engine.compute_answer_key(new_order, option_perm, number_str_map)
         all_keys.append((f"Mã đề {ma_de}", keys))
         
@@ -591,7 +631,6 @@ def generate_shuffled(options_json):
     async function initPyodide() {
         try {
             let pyodide = await loadPyodide();
-            document.getElementById('system-status-text').innerText = "Đang cài đặt thư viện 'python-docx' cho phiên làm việc...";
             await pyodide.loadPackage("micropip");
             const micropip = pyodide.pyimport("micropip");
             await micropip.install("python-docx");
@@ -604,24 +643,29 @@ def generate_shuffled(options_json):
             
             window.pyodide = pyodide;
             
-            document.getElementById('system-status-box').classList.replace('bg-yellow-50', 'bg-green-50');
-            document.getElementById('system-status-box').classList.replace('border-yellow-200', 'border-green-200');
-            document.getElementById('system-status-box').innerHTML = `
-                <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                <span class="text-green-700 font-bold ml-2">Sẵn sàng! Lõi xử lý đề thi đã tải xong.</span>`;
+            const status = document.getElementById('system-status');
+            status.className = "flex items-center px-4 py-2 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold shadow-inner";
+            status.innerHTML = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Sẵn sàng hoạt động`;
             document.getElementById('btn-analyze').disabled = false;
         } catch (err) {
-            document.getElementById('system-status-box').innerHTML = `<span class="text-red-600">Lỗi khi khởi tạo lõi: ${err}</span>`;
+            document.getElementById('system-status').innerHTML = `<span class="text-red-600">Lỗi: ${err}</span>`;
         }
     }
     initPyodide();
 
+    function handleFileSelect(input) {
+        if(input.files.length > 0) {
+            document.getElementById('file-name-display').innerText = input.files[0].name;
+            document.getElementById('file-name-display').classList.replace('text-slate-600', 'text-indigo-600');
+        }
+    }
+
     async function analyzeFile() {
         const file = document.getElementById('docx-file').files[0];
-        if (!file) return alert("Vui lòng chọn file .docx gốc!");
+        if (!file) return alert("Vui lòng tải lên file đề thi gốc!");
         
         const btn = document.getElementById('btn-analyze');
-        btn.innerText = "Đang phân tích...";
+        btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang quét dữ liệu...`;
         btn.disabled = true;
 
         const reader = new FileReader();
@@ -631,10 +675,12 @@ def generate_shuffled(options_json):
                 const partsStr = window.pyodide.runPython(`parse_docx("${base64}")`);
                 const parts = JSON.parse(partsStr);
                 renderPartsUI(parts);
+                document.getElementById('step2').classList.remove('opacity-50', 'pointer-events-none');
+                document.getElementById('step3').classList.remove('opacity-50', 'pointer-events-none');
             } catch (err) {
-                alert("Không đọc được file đề hoặc file sai cấu trúc:\n" + err);
+                alert("File sai cấu trúc hoặc lỗi xử lý:\n" + err);
             } finally {
-                btn.innerText = "Nạp & Phân Tích Lại";
+                btn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Phân Tích Lại`;
                 btn.disabled = false;
             }
         };
@@ -646,51 +692,60 @@ def generate_shuffled(options_json):
         container.innerHTML = '';
         window.currentParts = parts;
         
-        container.innerHTML += `
-            <div class="p-4 bg-yellow-50 border-b border-yellow-200">
-                <label class="flex items-center space-x-3 cursor-pointer">
-                    <input type="checkbox" id="cb-shuffle-parts" class="form-checkbox h-5 w-5 text-yellow-600">
-                    <span class="font-bold text-yellow-800 text-lg">Đảo vị trí các PHẦN với nhau trong đề thi</span>
-                </label>
-                <p class="text-sm text-yellow-700 ml-8 mt-1">Lưu ý: Hệ thống sẽ di chuyển toàn bộ khối câu hỏi CÙNG VỚI đoạn văn/lời dẫn của phần đó.</p>
-            </div>
-        `;
-        
         parts.forEach((part, index) => {
-            let disabled = part.is_cloze ? "disabled" : "";
-            let note = part.is_cloze ? "<span class='text-xs text-red-500 font-bold ml-2'>(Dạng điền khuyết - Cố định thứ tự câu)</span>" : "";
+            // Logic UI cho nhóm bị khóa
+            let lockState = part.is_cloze;
             
+            let lockIcon = lockState 
+                ? `<svg class="w-5 h-5 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg><span class="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded">Cố định thứ tự câu</span>`
+                : `<svg class="w-5 h-5 text-emerald-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg><span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Cho phép đảo câu</span>`;
+
+            let toggleDisabled = lockState ? "disabled" : "";
+            let toggleOpacity = lockState ? "opacity-40 cursor-not-allowed" : "cursor-pointer";
+
             container.innerHTML += `
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-4 border-b border-gray-100 hover:bg-gray-50 transition">
-                    <div class="w-full md:w-1/2 mb-3 md:mb-0">
-                        <p class="font-bold text-indigo-800">Khối: Câu ${part.q_from}-${part.q_to}</p>
-                        <p class="text-sm text-gray-500 line-clamp-2" title="${part.label}">${part.label}</p>
-                    </div>
-                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-6 items-start sm:items-center">
-                        <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="checkbox" id="opt-opts-${index}" checked class="form-checkbox h-5 w-5 text-indigo-600">
-                            <span class="font-medium text-gray-700">Xáo đáp án</span>
-                        </label>
-                        <div class="flex items-center">
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="checkbox" id="opt-order-${index}" ${!part.is_cloze ? 'checked' : ''} ${disabled} class="form-checkbox h-5 w-5 text-indigo-600">
-                                <span class="font-medium text-gray-700">Đảo câu (Nội bộ)</span>
-                            </label>
-                            ${note}
+                <div class="mb-4 bg-white border ${part.explicit_lock ? 'border-red-200' : 'border-slate-200'} rounded-lg p-4 shadow-sm hover:shadow-md transition duration-200">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-1 pr-4">
+                            <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide">
+                                Khối: CÂU ${part.q_from} - ${part.q_to}
+                            </h3>
+                            <p class="text-sm text-slate-500 line-clamp-2 italic mt-1 bg-slate-50 p-2 rounded border-l-2 border-slate-300" title="${part.label}">"${part.label}"</p>
                         </div>
+                        <div class="flex items-center whitespace-nowrap">
+                            ${lockIcon}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-6 border-t border-slate-100 pt-3">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <div class="relative">
+                                <input type="checkbox" id="opt-opts-${index}" checked class="sr-only toggle-checkbox">
+                                <div class="block bg-slate-200 w-8 h-5 rounded-full toggle-label transition"></div>
+                                <div class="dot absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition transform toggle-dot"></div>
+                            </div>
+                            <span class="text-sm font-medium text-slate-700">Xáo phương án (A,B,C,D)</span>
+                        </label>
+
+                        <label class="flex items-center space-x-2 ${toggleOpacity}">
+                            <div class="relative">
+                                <input type="checkbox" id="opt-order-${index}" ${!lockState ? 'checked' : ''} ${toggleDisabled} class="sr-only toggle-checkbox">
+                                <div class="block bg-slate-200 w-8 h-5 rounded-full toggle-label transition"></div>
+                                <div class="dot absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition transform toggle-dot"></div>
+                            </div>
+                            <span class="text-sm font-medium ${lockState ? 'text-slate-400' : 'text-slate-700'}">Đảo câu (Nội bộ)</span>
+                        </label>
                     </div>
                 </div>
             `;
         });
-        
-        document.getElementById('step2').classList.remove('hidden');
-        document.getElementById('step3').classList.remove('hidden');
     }
 
     async function shuffleAndExport() {
         const btn = document.getElementById('btn-shuffle');
+        const originalText = btn.innerHTML;
         btn.disabled = true;
-        btn.innerText = "Đang tạo mã đề, vui lòng chờ...";
+        btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ĐANG TẠO MÃ ĐỀ...`;
         
         try {
             let opts = {
@@ -708,6 +763,10 @@ def generate_shuffled(options_json):
             });
             
             const optsJson = JSON.stringify(opts);
+            
+            // Allow UI to update before running heavy python block
+            await new Promise(r => setTimeout(r, 100)); 
+            
             const resultStr = window.pyodide.runPython(`generate_shuffled('${optsJson}')`);
             const resultFiles = JSON.parse(resultStr);
             
@@ -715,15 +774,14 @@ def generate_shuffled(options_json):
             for (const [filename, base64] of Object.entries(resultFiles)) {
                 zip.file(filename, base64, {base64: true});
             }
-            
             const content = await zip.generateAsync({type: "blob"});
             saveAs(content, "MaDeThi.zip");
             
         } catch (err) {
-            alert("Lỗi khi tạo đề thi: " + err);
+            alert("Đã xảy ra lỗi: " + err);
         } finally {
             btn.disabled = false;
-            btn.innerText = "BẮT ĐẦU ĐẢO ĐỀ VÀ TẢI XUỐNG (.ZIP)";
+            btn.innerHTML = originalText;
         }
     }
 </script>
