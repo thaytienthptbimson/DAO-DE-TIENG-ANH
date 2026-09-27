@@ -414,12 +414,12 @@ def detect_parts(parsed):
                 current_q_from = next_qnum
 
     process_specs(parsed["prelude"], all_qnums[0] if all_qnums else None)
-    for qnum in all_qnums:
-        last_seen_q = qnum
+    for q_num in all_qnums:
+        last_seen_q = q_num
         if current_q_from is None and current_label is not None:
-            current_q_from = qnum
-        next_q = all_qnums[all_qnums.index(qnum)+1] if all_qnums.index(qnum)+1 < len(all_qnums) else None
-        process_specs(parsed.get("fillers_after", {}).get(qnum, []), next_q)
+            current_q_from = q_num
+        next_q = all_qnums[all_qnums.index(q_num)+1] if all_qnums.index(q_num)+1 < len(all_qnums) else None
+        process_specs(parsed.get("fillers_after", {}).get(q_num, []), next_q)
         
     flush_part(last_seen_q)
     
@@ -436,8 +436,8 @@ def detect_parts(parsed):
     for part in final_parts:
         if not part.get("explicit_lock"):
             empties, total = 0, 0
-            for qn in range(part["q_from"], part["q_to"] + 1):
-                q = qmap.get(qn)
+            for q_num in range(part["q_from"], part["q_to"] + 1):
+                q = qmap.get(q_num)
                 if q is None: continue
                 total += 1
                 raw = "".join(seg[0] for sp in q.stem_paragraphs for seg in sp.segments)
@@ -454,17 +454,17 @@ def shuffle_plan(parsed, parts, opts, rng=None):
     
     q_to_part = {}
     for pi, part in enumerate(parts):
-        for qn in range(part["q_from"], part["q_to"] + 1):
-            q_to_part[qn] = pi
+        for q_num in range(part["q_from"], part["q_to"] + 1):
+            q_to_part[q_num] = pi
             
     blocks = []
     current_block = None
-    for qn in all_numbers:
-        p = q_to_part.get(qn)
+    for q_num in all_numbers:
+        p = q_to_part.get(q_num)
         if current_block is None or current_block["part_idx"] != p:
             if current_block is not None: blocks.append(current_block)
             current_block = {"part_idx": p, "qnums": [], "specs_before": [], "specs_internal": {}}
-        current_block["qnums"].append(qn)
+        current_block["qnums"].append(q_num)
     if current_block is not None: blocks.append(current_block)
         
     split_idx = len(parsed["prelude"])
@@ -494,18 +494,18 @@ def shuffle_plan(parsed, parts, opts, rng=None):
     if blocks: blocks[0]["specs_before"].extend(parsed["prelude"][split_idx:])
         
     for i, block in enumerate(blocks):
-        for j, qn in enumerate(block["qnums"]):
+        for j, q_num in enumerate(block["qnums"]):
             if j == len(block["qnums"]) - 1: 
-                if i + 1 < len(blocks): blocks[i + 1]["specs_before"].extend(parsed["fillers_after"].get(qn, []))
-                else: block["specs_internal"][qn] = parsed["fillers_after"].get(qn, [])
-            else: block["specs_internal"][qn] = parsed["fillers_after"].get(qn, [])
+                if i + 1 < len(blocks): blocks[i + 1]["specs_before"].extend(parsed["fillers_after"].get(q_num, []))
+                else: block["specs_internal"][q_num] = parsed["fillers_after"].get(q_num, [])
+            else: block["specs_internal"][q_num] = parsed["fillers_after"].get(q_num, [])
                 
     shuffle_parts_globally = opts.get("shuffle_parts", False)
     if shuffle_parts_globally:
         rng.shuffle(blocks)
         
     option_perm = {}
-    for qn, q in qmap.items(): option_perm[qn] = list(q.options)
+    for q_num, q in qmap.items(): option_perm[q_num] = list(q.options)
         
     for block in blocks:
         p_idx = block["part_idx"]
@@ -514,11 +514,11 @@ def shuffle_plan(parsed, parts, opts, rng=None):
             part_info = parts[p_idx]
             
             if cfg.get("shuffle_options"):
-                for qn in block["qnums"]:
-                    if qn in qmap and len(qmap[qn].options) == 4:
+                for q_num in block["qnums"]:
+                    if q_num in qmap and len(qmap[q_num].options) == 4:
                         order = [0, 1, 2, 3]
                         rng.shuffle(order)
-                        option_perm[qn] = [qmap[qn].options[i] for i in order]
+                        option_perm[q_num] = [qmap[q_num].options[idx] for idx in order]
                         
             if cfg.get("shuffle_order") and not part_info["is_cloze"] and len(block["qnums"]) > 1:
                 rng.shuffle(block["qnums"])
@@ -526,7 +526,7 @@ def shuffle_plan(parsed, parts, opts, rng=None):
     new_order = []
     for block in blocks: new_order.extend(block["qnums"])
         
-    number_str_map = {old_qn: str(pos + 1) for pos, old_qn in enumerate(new_order)}
+    number_str_map = {old_q_num: str(pos + 1) for pos, old_q_num in enumerate(new_order)}
     return global_header, blocks, option_perm, number_str_map, new_order
 
 
@@ -536,7 +536,6 @@ def _copy_seg_run(paragraph, seg, new_number_str=None, text_mapping=None, mappin
     out_text = new_number_str if (is_number and new_number_str is not None) else text
     
     if mapping_regex and out_text and not is_number:
-        # Thay thế các số thứ tự trong lời dẫn / đoạn văn sao cho khớp với cấu trúc mã đề mới
         out_text = mapping_regex.sub(lambda m: text_mapping[m.group(1)], out_text)
         
     r = paragraph.add_run(out_text)
@@ -581,21 +580,17 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
         _emit_plain_paragraph(doc, spec)
         
     for block in blocks:
-        # XÂY DỰNG BỘ MÁY ĐỒNG BỘ SỐ THỨ TỰ CHO RIÊNG KHỐI NÀY
         block_mapping = {str(q): str(number_str_map[q]) for q in block["qnums"]}
-        # Sắp xếp key từ dài đến ngắn để tránh lỗi replace (ví dụ: '10' phải replace trước '1')
         keys = sorted(block_mapping.keys(), key=len, reverse=True)
         mapping_regex = re.compile(r'\b(' + '|'.join(keys) + r')\b') if keys else None
 
-        # Render lời dẫn khối / Đoạn văn trước câu hỏi
         for spec in block["specs_before"]: 
             _emit_plain_paragraph(doc, spec, text_mapping=block_mapping, mapping_regex=mapping_regex)
             
-        # Render câu hỏi
-        for old_qn in block["qnums"]:
-            q = qmap[old_qn]
-            new_num_str = number_str_map[old_qn]
-            opts = option_perm[old_qn]
+        for old_q_num in block["qnums"]:
+            q = qmap[old_q_num]
+            new_num_str = number_str_map[old_q_num]
+            opts = option_perm[old_q_num]
             
             if q.options_mode == 'inline_with_marker':
                 p = doc.add_paragraph()
@@ -627,8 +622,7 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
                         copy_ppr(p, q.options_ppr_source)
                         _emit_option_run(p, opt, "ABCD"[i], True)
 
-            # Render đoạn văn nội bộ (như passage điền khuyết nằm kẹp giữa)
-            for spec in block["specs_internal"].get(old_qn, []): 
+            for spec in block["specs_internal"].get(old_q_num, []): 
                 _emit_plain_paragraph(doc, spec, text_mapping=block_mapping, mapping_regex=mapping_regex)
                 
     if sect_prs: body.append(copy.deepcopy(sect_prs[-1]))
@@ -636,12 +630,12 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
 
 def compute_answer_key(new_order, option_perm, number_str_map):
     result = []
-    for old_qn in new_order:
-        opts = option_perm[old_qn]
+    for old_q_num in new_order:
+        opts = option_perm[old_q_num]
         correct_letter = None
         for i, opt in enumerate(opts):
             if opt.is_correct: correct_letter = "ABCD"[i]; break
-        result.append((number_str_map[old_qn], correct_letter))
+        result.append((number_str_map[old_q_num], correct_letter))
     return result
 
 def build_answer_key_docx(all_keys, out_path):
