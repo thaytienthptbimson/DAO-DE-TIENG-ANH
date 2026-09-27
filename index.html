@@ -3,27 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PHẦN MỀM ĐẢO ĐỀ TIẾNG ANH - CHUYÊN DÙNG CHO MẪU ĐỀ THI TN 2026</title>
-    <!-- Tailwind CSS -->
+    <title>PHẦN MỀM ĐẢO ĐỀ CHUYÊN DÙNG CHO MÔN TIẾNG ANH TN LỚP 12</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Pyodide để chạy Python trên trình duyệt -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-    <!-- JSZip và FileSaver để gom file tải xuống -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 p-6 min-h-screen">
     <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-lg p-8">
         <h1 class="text-2xl font-bold text-center text-blue-600 mb-2">PHẦN MỀM ĐẢO MÃ ĐỀ THI (.DOCX)</h1>
-        <p class="text-center text-gray-500 text-sm mb-6">Không cần cài đặt Python - Dữ liệu xử lý 100% trên máy của bạn, an toàn tuyệt đối.</p>
+        <p class="text-center text-gray-500 text-sm mb-6">Xử lý khối nâng cao: Đảo phần đi kèm lời dẫn - Giữ chặt câu hỏi trong phần.</p>
         
-        <!-- Trạng thái hệ thống -->
         <div id="system-status-box" class="bg-yellow-50 border border-yellow-200 p-4 rounded mb-6 flex items-center space-x-3">
             <svg class="animate-spin h-5 w-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span id="system-status-text" class="text-yellow-700 font-medium">Hệ thống đang tải lõi Python (khoảng 10-20MB, chỉ tải lần đầu)...</span>
+            <span id="system-status-text" class="text-yellow-700 font-medium">Hệ thống đang tải lõi Python...</span>
         </div>
 
         <!-- BƯỚC 1 -->
@@ -37,9 +33,8 @@
 
         <!-- BƯỚC 2 -->
         <div class="mb-8 hidden" id="step2">
-            <h2 class="text-lg font-semibold border-b pb-2 mb-4 text-indigo-700">2) Tuỳ Chọn Đảo Câu / Đảo Phần</h2>
+            <h2 class="text-lg font-semibold border-b pb-2 mb-4 text-indigo-700">2) Tuỳ Chọn Đảo Khối / Phần</h2>
             <div id="parts-container" class="bg-white border rounded shadow-sm">
-                <!-- Nội dung các phần sẽ được render bằng JS -->
             </div>
         </div>
 
@@ -66,9 +61,7 @@
         </div>
     </div>
 
-<!-- CHỨA MÃ PYTHON CỦA BẠN (Đã cập nhật logic đảo đoạn) -->
 <script type="text/plain" id="engine-py">
-# -*- coding: utf-8 -*-
 import re
 import copy
 import random
@@ -105,8 +98,7 @@ def flatten_runs(paragraph):
     walk(paragraph._p)
     return spans
 
-def para_text(paragraph):
-    return "".join(r.text for _s, _e, r in flatten_runs(paragraph))
+def para_text(paragraph): return "".join(r.text for _s, _e, r in flatten_runs(paragraph))
 
 def slice_text_runs(spans, start, end):
     out = []
@@ -332,65 +324,89 @@ def shuffle_plan(parsed, parts, opts, rng=None):
     qmap = {q.number: q for q in parsed["questions"]}
     all_numbers = sorted(qmap.keys())
     
-    # 1. Đảo Vị Trí Của Các PHẦN (Block level)
-    shuffle_parts_globally = opts.get("shuffle_parts", False)
-    
+    # 1. Map questions to parts
     q_to_part = {}
     for pi, part in enumerate(parts):
         for qn in range(part["q_from"], part["q_to"] + 1):
             q_to_part[qn] = pi
             
+    # 2. Build strict blocks (Lời dẫn đi kèm câu hỏi)
     blocks = []
-    current_part = None
-    current_block = []
+    current_block = None
     for qn in all_numbers:
         p = q_to_part.get(qn)
-        if p != current_part:
-            if current_block:
-                blocks.append((current_part, current_block))
-            current_part = p
-            current_block = [qn]
-        else:
-            current_block.append(qn)
-    if current_block:
-        blocks.append((current_part, current_block))
+        if current_block is None or current_block["part_idx"] != p:
+            if current_block is not None:
+                blocks.append(current_block)
+            current_block = {"part_idx": p, "qnums": [], "specs_before": [], "specs_internal": {}}
+        current_block["qnums"].append(qn)
+    if current_block is not None:
+        blocks.append(current_block)
         
+    # 3. Tách Header Chung vs Lời Dẫn Phần 1
+    split_idx = len(parsed["prelude"])
+    if blocks and blocks[0]["part_idx"] is not None:
+        part_info = parts[blocks[0]["part_idx"]]
+        target_str = str(part_info["q_from"])
+        for i, spec in enumerate(parsed["prelude"]):
+            text = "".join(seg[0] for seg in spec.segments)
+            m = FROM_TO_RE.search(text)
+            if m and m.group(1) == target_str:
+                split_idx = i
+                break
+                
+    global_header = parsed["prelude"][:split_idx]
+    if blocks:
+        blocks[0]["specs_before"].extend(parsed["prelude"][split_idx:])
+        
+    # Phân bổ Fillers
+    for i, block in enumerate(blocks):
+        for j, qn in enumerate(block["qnums"]):
+            if j == len(block["qnums"]) - 1: # Câu cuối của Block
+                if i + 1 < len(blocks):
+                    # Lời dẫn của phần tiếp theo
+                    blocks[i + 1]["specs_before"].extend(parsed["fillers_after"].get(qn, []))
+                else:
+                    block["specs_internal"][qn] = parsed["fillers_after"].get(qn, [])
+            else:
+                block["specs_internal"][qn] = parsed["fillers_after"].get(qn, [])
+                
+    # 4. Đảo Khối / Phần (Giữ nguyên cấu trúc khối)
+    shuffle_parts_globally = opts.get("shuffle_parts", False)
     if shuffle_parts_globally:
-        part_block_indices = [i for i, b in enumerate(blocks) if b[0] is not None]
-        shuffled_part_blocks = [blocks[i] for i in part_block_indices]
-        rng.shuffle(shuffled_part_blocks)
-        for i, new_b in zip(part_block_indices, shuffled_part_blocks):
-            blocks[i] = new_b
-
-    # 2. Đảo Đáp Án & Câu Hỏi TRONG nội bộ từng PHẦN
-    new_order = []
-    option_perm = {}
-    for pi, part in enumerate(parts):
-        cfg = opts.get(pi, {})
-        if cfg.get("shuffle_options"):
-            for qn in range(part["q_from"], part["q_to"] + 1):
-                if qn in qmap and len(qmap[qn].options) == 4:
-                    order = [0, 1, 2, 3]
-                    rng.shuffle(order)
-                    option_perm[qn] = [qmap[qn].options[i] for i in order]
-    for qn, q in qmap.items():
-        option_perm.setdefault(qn, list(q.options))
+        rng.shuffle(blocks)
         
-    for p_idx, qnums in blocks:
+    # 5. Xáo trộn Options & Thứ tự câu trong bộ phận
+    option_perm = {}
+    for qn, q in qmap.items():
+        option_perm[qn] = list(q.options)
+        
+    for block in blocks:
+        p_idx = block["part_idx"]
         if p_idx is not None:
             cfg = opts.get(p_idx, {})
             part_info = parts[p_idx]
-            # CHỈ đảo thứ tự câu trong phần nếu option phần đó được chọn True
-            if cfg.get("shuffle_order") and not part_info["is_cloze"] and len(qnums) > 1:
-                shuffled_qnums = qnums[:]
-                rng.shuffle(shuffled_qnums)
-                new_order.extend(shuffled_qnums)
-            else:
-                new_order.extend(qnums)
-        else:
-            new_order.extend(qnums)
             
-    return new_order, option_perm
+            # Xáo Options
+            if cfg.get("shuffle_options"):
+                for qn in block["qnums"]:
+                    if qn in qmap and len(qmap[qn].options) == 4:
+                        order = [0, 1, 2, 3]
+                        rng.shuffle(order)
+                        option_perm[qn] = [qmap[qn].options[i] for i in order]
+                        
+            # Xáo thứ tự câu (Câu chỉ đảo trong vòng Block này)
+            if cfg.get("shuffle_order") and not part_info["is_cloze"] and len(block["qnums"]) > 1:
+                rng.shuffle(block["qnums"])
+                
+    # 6. Gom trật tự mới
+    new_order = []
+    for block in blocks:
+        new_order.extend(block["qnums"])
+        
+    number_str_map = {old_qn: str(pos + 1) for pos, old_qn in enumerate(new_order)}
+    
+    return global_header, blocks, option_perm, number_str_map, new_order
 
 def _copy_seg_run(paragraph, seg, new_number_str=None):
     text, run, strip_u, is_number = seg
@@ -418,53 +434,66 @@ def _emit_option_run(paragraph, opt, new_letter, is_first_of_opt):
         if j == 0 and is_first_of_opt: seg = _relabel_first_char(seg, new_letter)
         _copy_seg_run(paragraph, seg)
 
-def render_exam_docx(parsed, new_order, option_perm, number_str_map, out_path, header_line=None):
+def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map, out_path, header_line=None):
     doc = Document(parsed["doc_path"])
     body = doc.element.body
     sect_prs = body.findall(qn('w:sectPr'))
     for child in list(body):
         if child.tag != qn('w:sectPr'): body.remove(child)
+        
     if header_line:
         p = doc.add_paragraph()
         r = p.add_run(header_line)
         r.bold = True
+        
     qmap = {q.number: q for q in parsed["questions"]}
-    for spec in parsed["prelude"]: _emit_plain_paragraph(doc, spec)
-
-    for old_qn in new_order:
-        q = qmap[old_qn]
-        new_num_str = number_str_map[old_qn]
-        opts = option_perm[old_qn]
-        if q.options_mode == 'inline_with_marker':
-            p = doc.add_paragraph()
-            copy_ppr(p, q.stem_paragraphs[0].source_paragraph)
-            for seg in q.stem_paragraphs[0].segments: _copy_seg_run(p, seg, new_num_str)
-            for i, opt in enumerate(opts):
-                if i > 0:
-                    tab_run = p.add_run("\t")
-                    copy_rpr(tab_run, opt.segments[0][1])
-                _emit_option_run(p, opt, "ABCD"[i], True)
-        else:
-            for sp in q.stem_paragraphs:
+    
+    # 1. Vẽ Global Header
+    for spec in global_header: 
+        _emit_plain_paragraph(doc, spec)
+        
+    # 2. Vẽ từng Block (Lời dẫn kèm câu hỏi)
+    for block in blocks:
+        for spec in block["specs_before"]: 
+            _emit_plain_paragraph(doc, spec)
+            
+        for old_qn in block["qnums"]:
+            q = qmap[old_qn]
+            new_num_str = number_str_map[old_qn]
+            opts = option_perm[old_qn]
+            
+            if q.options_mode == 'inline_with_marker':
                 p = doc.add_paragraph()
-                copy_ppr(p, sp.source_paragraph)
-                for seg in sp.segments: _copy_seg_run(p, seg, new_num_str)
-            if q.options_mode == 'same_line':
-                p = doc.add_paragraph()
-                copy_ppr(p, q.options_ppr_source)
+                copy_ppr(p, q.stem_paragraphs[0].source_paragraph)
+                for seg in q.stem_paragraphs[0].segments: _copy_seg_run(p, seg, new_num_str)
                 for i, opt in enumerate(opts):
                     if i > 0:
                         tab_run = p.add_run("\t")
                         copy_rpr(tab_run, opt.segments[0][1])
                     _emit_option_run(p, opt, "ABCD"[i], True)
-            elif q.options_mode == 'separate':
-                for i, opt in enumerate(opts):
+            else:
+                for sp in q.stem_paragraphs:
+                    p = doc.add_paragraph()
+                    copy_ppr(p, sp.source_paragraph)
+                    for seg in sp.segments: _copy_seg_run(p, seg, new_num_str)
+                if q.options_mode == 'same_line':
                     p = doc.add_paragraph()
                     copy_ppr(p, q.options_ppr_source)
-                    _emit_option_run(p, opt, "ABCD"[i], True)
+                    for i, opt in enumerate(opts):
+                        if i > 0:
+                            tab_run = p.add_run("\t")
+                            copy_rpr(tab_run, opt.segments[0][1])
+                        _emit_option_run(p, opt, "ABCD"[i], True)
+                elif q.options_mode == 'separate':
+                    for i, opt in enumerate(opts):
+                        p = doc.add_paragraph()
+                        copy_ppr(p, q.options_ppr_source)
+                        _emit_option_run(p, opt, "ABCD"[i], True)
 
-        for spec in parsed["fillers_after"].get(old_qn, []):
-            _emit_plain_paragraph(doc, spec)
+            # Filler riêng biệt cho câu (Ví dụ ảnh đính kèm theo Q6)
+            for spec in block["specs_internal"].get(old_qn, []):
+                _emit_plain_paragraph(doc, spec)
+                
     if sect_prs: body.append(copy.deepcopy(sect_prs[-1]))
     doc.save(out_path)
 
@@ -495,14 +524,12 @@ def build_answer_key_docx(all_keys, out_path):
     doc.save(out_path)
 </script>
 
-<!-- WRAPPER ĐỂ PYTHON GIAO TIẾP VỚI JAVASCRIPT -->
 <script type="text/plain" id="wrapper-py">
 import io
 import sys
 import json
 import base64
 import random
-# Tạo module ảo để import
 import types
 engine_code = open('/engine_source.py').read()
 engine_module = types.ModuleType('engine')
@@ -521,7 +548,6 @@ def parse_docx(base64_data):
     
     G_PARSED = engine.parse_exam('/input.docx')
     G_PARTS = engine.detect_parts(G_PARSED)
-    
     return json.dumps(G_PARTS)
 
 def generate_shuffled(options_json):
@@ -533,20 +559,19 @@ def generate_shuffled(options_json):
     
     py_opts = {"shuffle_parts": shuffle_parts_globally}
     for k, v in opts.items():
-        if k.isdigit():
-            py_opts[int(k)] = v
+        if k.isdigit(): py_opts[int(k)] = v
             
     out_files = {}
     all_keys = []
     
     for i in range(num_ma_de):
         ma_de = str(start_code + i)
-        new_order, option_perm = engine.shuffle_plan(G_PARSED, G_PARTS, py_opts, rng=random)
-        number_str_map = {old_qn: str(pos + 1) for pos, old_qn in enumerate(new_order)}
-        header_line = f"Mã đề: {ma_de}" if insert_header else None
+        global_header, blocks, option_perm, number_str_map, new_order = engine.shuffle_plan(G_PARSED, G_PARTS, py_opts, rng=random)
         
+        header_line = f"Mã đề: {ma_de}" if insert_header else None
         out_path = f"/MaDe_{ma_de}.docx"
-        engine.render_exam_docx(G_PARSED, new_order, option_perm, number_str_map, out_path, header_line=header_line)
+        
+        engine.render_exam_docx(G_PARSED, global_header, blocks, option_perm, number_str_map, out_path, header_line=header_line)
         
         keys = engine.compute_answer_key(new_order, option_perm, number_str_map)
         all_keys.append((f"Mã đề {ma_de}", keys))
@@ -563,7 +588,6 @@ def generate_shuffled(options_json):
 </script>
 
 <script>
-    // KHI TRÌNH DUYỆT TẢI, CHẠY LÕI PYODIDE
     async function initPyodide() {
         try {
             let pyodide = await loadPyodide();
@@ -592,7 +616,6 @@ def generate_shuffled(options_json):
     }
     initPyodide();
 
-    // NẠP VÀ PHÂN TÍCH FILE
     async function analyzeFile() {
         const file = document.getElementById('docx-file').files[0];
         if (!file) return alert("Vui lòng chọn file .docx gốc!");
@@ -618,31 +641,29 @@ def generate_shuffled(options_json):
         reader.readAsDataURL(file);
     }
 
-    // HIỂN THỊ CÁC PHẦN ĐỂ CHỌN
     function renderPartsUI(parts) {
         const container = document.getElementById('parts-container');
         container.innerHTML = '';
         window.currentParts = parts;
         
-        // Tùy chọn MỚI: Đảo vị trí các phần
         container.innerHTML += `
             <div class="p-4 bg-yellow-50 border-b border-yellow-200">
                 <label class="flex items-center space-x-3 cursor-pointer">
                     <input type="checkbox" id="cb-shuffle-parts" class="form-checkbox h-5 w-5 text-yellow-600">
                     <span class="font-bold text-yellow-800 text-lg">Đảo vị trí các PHẦN với nhau trong đề thi</span>
                 </label>
-                <p class="text-sm text-yellow-700 ml-8 mt-1">Ghi chú: Nếu tích vào đây, thứ tự các phần (Ví dụ: Từ câu 1-5 và Từ câu 6-10) sẽ bị hoán đổi vị trí ngẫu nhiên cho nhau.</p>
+                <p class="text-sm text-yellow-700 ml-8 mt-1">Lưu ý: Hệ thống sẽ di chuyển toàn bộ khối câu hỏi CÙNG VỚI đoạn văn/lời dẫn của phần đó.</p>
             </div>
         `;
         
         parts.forEach((part, index) => {
             let disabled = part.is_cloze ? "disabled" : "";
-            let note = part.is_cloze ? "<span class='text-xs text-red-500 font-bold ml-2'>(Dạng điền khuyết - Không cho phép đảo câu)</span>" : "";
+            let note = part.is_cloze ? "<span class='text-xs text-red-500 font-bold ml-2'>(Dạng điền khuyết - Cố định thứ tự câu)</span>" : "";
             
             container.innerHTML += `
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-4 border-b border-gray-100 hover:bg-gray-50 transition">
                     <div class="w-full md:w-1/2 mb-3 md:mb-0">
-                        <p class="font-bold text-indigo-800">Câu ${part.q_from}-${part.q_to}</p>
+                        <p class="font-bold text-indigo-800">Khối: Câu ${part.q_from}-${part.q_to}</p>
                         <p class="text-sm text-gray-500 line-clamp-2" title="${part.label}">${part.label}</p>
                     </div>
                     <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-6 items-start sm:items-center">
@@ -653,7 +674,7 @@ def generate_shuffled(options_json):
                         <div class="flex items-center">
                             <label class="flex items-center space-x-2 cursor-pointer">
                                 <input type="checkbox" id="opt-order-${index}" ${!part.is_cloze ? 'checked' : ''} ${disabled} class="form-checkbox h-5 w-5 text-indigo-600">
-                                <span class="font-medium text-gray-700">Xáo thứ tự câu</span>
+                                <span class="font-medium text-gray-700">Đảo câu (Nội bộ)</span>
                             </label>
                             ${note}
                         </div>
@@ -666,7 +687,6 @@ def generate_shuffled(options_json):
         document.getElementById('step3').classList.remove('hidden');
     }
 
-    // CHẠY PYTHON TẠO FILE VÀ ZIP
     async function shuffleAndExport() {
         const btn = document.getElementById('btn-shuffle');
         btn.disabled = true;
@@ -691,7 +711,6 @@ def generate_shuffled(options_json):
             const resultStr = window.pyodide.runPython(`generate_shuffled('${optsJson}')`);
             const resultFiles = JSON.parse(resultStr);
             
-            // Đóng gói bằng JSZip
             const zip = new JSZip();
             for (const [filename, base64] of Object.entries(resultFiles)) {
                 zip.file(filename, base64, {base64: true});
