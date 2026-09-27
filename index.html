@@ -15,7 +15,7 @@
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .toggle-checkbox:checked + .toggle-label + .toggle-dot { transform: translateX(100%); }
-        #cb-shuffle-parts:checked + .toggle-label + .toggle-dot { transform: translateX(120%); }
+        #cb-shuffle-parts:checked + .toggle-label + .toggle-dot { transform: translateX(100%); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
@@ -236,12 +236,16 @@ def _make_para_spec(paragraph, a=0, b=None, number_span=None):
 
 def _mark_option_correctness(segments):
     if not segments: return segments, False
-    first_text, first_run, _su, _isn = segments[0]
-    is_correct = run_has_underline(first_run)
+    # Quan trọng: đáp án đúng được đánh dấu bằng cách gạch chân, nhưng Word có thể
+    # tách nội dung của một đáp án thành NHIỀU run khác nhau (ví dụ do gõ nhiều lần,
+    # sửa định dạng...). Nếu chỉ kiểm tra run đầu tiên (segments[0]) thì có thể:
+    #   1) Bỏ sót đáp án đúng nếu phần gạch chân nằm ở run sau, dẫn đến bảng đáp án SAI.
+    #   2) Không xoá gạch chân ở các run còn lại khi xuất file, khiến đáp án đúng
+    #      vẫn lộ ra (bị gạch chân) trong đề thi đã xáo trộn phát cho học sinh.
+    # => Kiểm tra và xoá gạch chân trên TẤT CẢ các run thuộc đáp án.
+    is_correct = any(run_has_underline(r) for _t, r, _su, _isn in segments)
     if is_correct:
-        segments = list(segments)
-        t, r, _su, isn = segments[0]
-        segments[0] = (t, r, True, isn)
+        segments = [(t, r, True, isn) for (t, r, _su, isn) in segments]
     return segments, is_correct
 
 def _extract_inline_options(paragraph, options_text_start):
@@ -433,6 +437,42 @@ def detect_parts(parsed):
     
     final_parts.sort(key=lambda x: x["q_from"])
 
+    # Đảm bảo MỌI câu hỏi đều thuộc về một "phần" nào đó, kể cả khi không phát
+    # hiện được nhãn/tiêu đề phần nào trong đề gốc, hoặc nhãn chỉ phủ một phần
+    # câu hỏi. Nếu không, các câu nằm ngoài phạm vi đã phát hiện sẽ bị engine
+    # xáo trộn bỏ qua hoàn toàn (không xáo đáp án lẫn thứ tự câu) một cách âm thầm.
+    if all_qnums:
+        had_parts_before = bool(final_parts)
+        covered_all = set()
+        for part in final_parts:
+            covered_all.update(range(part["q_from"], part["q_to"] + 1))
+        missing = sorted(q for q in all_qnums if q not in covered_all)
+        gap_ranges = []
+        if missing:
+            start = prev = missing[0]
+            for q in missing[1:]:
+                if q == prev + 1:
+                    prev = q
+                    continue
+                gap_ranges.append((start, prev))
+                start = prev = q
+            gap_ranges.append((start, prev))
+        for qf, qt in gap_ranges:
+            if not had_parts_before and len(gap_ranges) == 1:
+                label = "Toàn bộ đề thi"
+            else:
+                label = f"Câu {qf} - {qt} (chưa gắn nhãn phần)"
+            final_parts.append({
+                "label": label,
+                "q_from": qf,
+                "q_to": qt,
+                "is_cloze": False,
+                "explicit_lock": False,
+                "from_regex": False
+            })
+        if gap_ranges:
+            final_parts.sort(key=lambda x: x["q_from"])
+
     for part in final_parts:
         if not part.get("explicit_lock"):
             empties, total = 0, 0
@@ -600,7 +640,7 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
                 for i, opt in enumerate(opts):
                     if i > 0:
                         tab_run = p.add_run("\t")
-                        copy_rpr(tab_run, opt.segments[0][1])
+                        if opt.segments: copy_rpr(tab_run, opt.segments[0][1])
                     _emit_option_run(p, opt, "ABCD"[i], True)
             else:
                 for sp in q.stem_paragraphs:
@@ -614,7 +654,7 @@ def render_exam_docx(parsed, global_header, blocks, option_perm, number_str_map,
                     for i, opt in enumerate(opts):
                         if i > 0:
                             tab_run = p.add_run("\t")
-                            copy_rpr(tab_run, opt.segments[0][1])
+                            if opt.segments: copy_rpr(tab_run, opt.segments[0][1])
                         _emit_option_run(p, opt, "ABCD"[i], True)
                 elif q.options_mode == 'separate':
                     for i, opt in enumerate(opts):
@@ -742,6 +782,9 @@ def generate_shuffled(options_json):
     async function analyzeFile() {
         const file = document.getElementById('docx-file').files[0];
         if (!file) return alert("Vui lòng tải lên file đề thi gốc!");
+        if (!file.name.toLowerCase().endsWith('.docx')) {
+            return alert("Định dạng file không hợp lệ. Vui lòng chọn file Word (.docx).");
+        }
         
         const btn = document.getElementById('btn-analyze');
         btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang quét dữ liệu...`;
@@ -751,7 +794,9 @@ def generate_shuffled(options_json):
         reader.onload = function(e) {
             const base64 = e.target.result.split(',')[1];
             try {
-                const partsStr = window.pyodide.runPython(`parse_docx("${base64}")`);
+                const parseDocxFn = window.pyodide.globals.get('parse_docx');
+                const partsStr = parseDocxFn(base64);
+                parseDocxFn.destroy();
                 const parts = JSON.parse(partsStr);
                 renderPartsUI(parts);
                 document.getElementById('step2').classList.remove('opacity-50', 'pointer-events-none');
@@ -762,6 +807,11 @@ def generate_shuffled(options_json):
                 btn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Phân Tích Lại`;
                 btn.disabled = false;
             }
+        };
+        reader.onerror = function() {
+            alert("Không thể đọc file. Vui lòng thử chọn lại file.");
+            btn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg> Phân Tích Đề`;
+            btn.disabled = false;
         };
         reader.readAsDataURL(file);
     }
@@ -826,9 +876,18 @@ def generate_shuffled(options_json):
         btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ĐANG TẠO MĐ...`;
         
         try {
+            const numMade = parseInt(document.getElementById('num-made').value, 10);
+            const startCode = parseInt(document.getElementById('start-code').value, 10);
+            if (!Number.isInteger(numMade) || numMade < 1) {
+                throw new Error("Số lượng mã đề không hợp lệ. Vui lòng nhập một số nguyên từ 1 trở lên.");
+            }
+            if (!Number.isInteger(startCode) || startCode < 0) {
+                throw new Error("Mã đề bắt đầu không hợp lệ. Vui lòng nhập một số nguyên hợp lệ.");
+            }
+
             let opts = {
-                num_ma_de: parseInt(document.getElementById('num-made').value),
-                start_code: parseInt(document.getElementById('start-code').value),
+                num_ma_de: numMade,
+                start_code: startCode,
                 insert_header: document.getElementById('insert-header').checked,
                 shuffle_parts: document.getElementById('cb-shuffle-parts').checked
             };
@@ -843,7 +902,9 @@ def generate_shuffled(options_json):
             const optsJson = JSON.stringify(opts);
             await new Promise(r => setTimeout(r, 100)); 
             
-            const resultStr = window.pyodide.runPython(`generate_shuffled('${optsJson}')`);
+            const generateShuffledFn = window.pyodide.globals.get('generate_shuffled');
+            const resultStr = generateShuffledFn(optsJson);
+            generateShuffledFn.destroy();
             const resultFiles = JSON.parse(resultStr);
             
             const zip = new JSZip();
